@@ -1,4 +1,4 @@
-package com.koubakapp
+package com.codingeagle.onwayapp
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

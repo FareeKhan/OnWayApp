@@ -1,4 +1,4 @@
-package com.koubakapp
+package com.codingeagle.onwayapp
 
 import android.app.Application
 import com.facebook.react.PackageList
