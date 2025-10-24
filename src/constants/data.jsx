@@ -55,18 +55,7 @@ export const Countries = [
 ];
 
 
-// export const Countries = [
-//   {
-//     name: 'EN',
-//     code: 'en',
-//     flag: 'https://flagcdn.com/w320/us.png',
-//   },
-//   {
-//     name: 'AR',
-//     code: 'ar',
-//     flag: 'https://flagcdn.com/w320/sa.png',
-//   },
-// ];
+
 
 export const drinks = [
   { id: 1, name: 'Cappuccino',items:[1,2,3] },
