@@ -6,32 +6,51 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import CustomText from './CustomText';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { colors } from '../constants/colors';
 import { fonts } from '../constants/fonts';
 import { useNavigation } from '@react-navigation/native';
+import { imageUrl, mainUrl } from '../constants/data';
+import FastImage from 'react-native-fast-image';
 
 const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
   const navigation = useNavigation();
-  const renderItem = () => {
+
+  const [useFallback, setUseFallback] = useState(false);
+
+
+  const renderItem = ({ item, index }) => {
+    const remoteImage = item?.logo ? `${mainUrl}${item?.logo}` : `${mainUrl}${item?.image}`
+    console.log('remoteImageremoteImage', remoteImage)
+    const defaultImage = require('../assets/shopName.png')
+
+
+
+
     return (
       <TouchableOpacity
-        onPress={onPress ? onPress : () => navigation.navigate('ShopDetail')}
+        onPress={() => onPress ? onPress(item) : navigation.navigate('ShopDetail', {
+          id: item?.restaurant_id ? item?.restaurant_id : item?.id,
+        })}
         style={styles.cardBox}
       >
-        <Image
-          source={require('../assets/shopName.png')}
-          style={{ width: 70, height: 65 }}
-          borderRadius={10}
-          resizeMode="contain"
-        />
+        <View style={{ backgroundColor: 'red', borderRadius: 50, overflow: "hidden", borderWidth: 1, borderColor: colors.gray6 }}>
+          <FastImage
+            style={{ width: 70, height: 70 }}
+            source={useFallback ? defaultImage : {
+              uri: remoteImage,
+              priority: FastImage.priority.normal,
+            }}
+            onError={() => setUseFallback(true)}
+          />
+        </View>
 
         <View style={{ gap: 2, width: '75%' }}>
-          <CustomText style={styles.title}>Parkero</CustomText>
+          <CustomText style={styles.title}>{item?.name}</CustomText>
           <CustomText style={styles.subTitle}>
-            lorem ipsum lorem ipsum
+            {item?.description}
           </CustomText>
 
           <CustomText style={{ fontSize: 12, color: colors.gray1 }}>
@@ -76,9 +95,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     marginBottom: 8,
-    backgroundColor: colors.gray5,
+    backgroundColor: colors.gray5?.concat('99'),
     paddingHorizontal: 10,
     paddingVertical: 10,
+    borderRadius: 10
   },
   title: {
     fontFamily: fonts.medium,

@@ -8,7 +8,7 @@ import {
   TextInput,
   Image,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import CustomText from '../components/CustomText';
 import Subtitle from '../components/Subtitle';
@@ -26,19 +26,22 @@ import CustomInput from '../components/CustomInput';
 import CustomModal from '../components/CustomModal';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { language } from '../redux/Auth';
+import { language, logout } from '../redux/Auth';
 import RNRestart from 'react-native-restart';
 import { carLogoJson } from '../constants/carData';
 import { carImages } from '../constants/ExportCarsLogo';
 import { deleteCar, removeStoreCarData, storeCarData } from '../redux/storeAddedCar';
 import AddedCarData from '../components/AddedCarData';
+import { addVehicle, fetchVehicles } from '../userServices/UserService';
+import { showMessage } from 'react-native-flash-message';
 
 const { height, width } = Dimensions.get('screen');
 
 const AccountSetting = () => {
   const isLanguage = useSelector(state => state.auth?.isLanguage);
-    const carData = useSelector(state => state.carArray?.saveCar);
-  
+  // const carData = useSelector(state => state.carArray?.saveCar);
+  const token = useSelector((state) => state?.auth?.loginData?.token)
+
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const navigation = useNavigation();
@@ -48,6 +51,54 @@ const AccountSetting = () => {
   const [selectedCar, setSelectedCar] = useState('');
   const [plateNo, setPlateNo] = useState('');
   const [searchCar, setSearchCar] = useState('');
+  const [carData, setCarData] = useState([]);
+
+  useEffect(() => {
+    loadAddedVechicle()
+  }, [carData])
+
+  const handleAddCar = async () => {
+    const data = {
+      carCategory,
+      carName: selectedCar?.name,
+      plateNo,
+    };
+    try {
+      const response = await addVehicle(data, token)
+      console.log('Show me Veichle Response', response)
+      if (response?.success) {
+        showMessage({
+          type: "success",
+          message: t('vehicleAdded')
+        })
+
+        setCarCategory('')
+        setPlateNo('')
+        setSelectedCar('')
+        setIsAddNewCar(false);
+      } else {
+        showMessage({
+          type: "danger",
+          message: t('vehicleNotAdded')
+        })
+      }
+      dispatch(storeCarData(data));
+    } catch (error) {
+      console.log('Vehicle Error', error)
+
+    }
+  }
+
+  const loadAddedVechicle = async () => {
+    try {
+      const response = await fetchVehicles(token)
+      if (response?.success) {
+        setCarData(response?.data)
+      }
+    } catch (error) {
+      console.log('Vehicle Error', error)
+    }
+  }
 
   const IconMenu = ({ onpress, icon, label, red }) => {
     return (
@@ -63,7 +114,6 @@ const AccountSetting = () => {
     setIsCarModal(false);
   };
 
-
   const handleTranslation = () => {
     const isSelectedLanguage = isLanguage == 'en' ? 'ar' : 'en';
     dispatch(language({ isSelectedLanguage }));
@@ -76,28 +126,10 @@ const AccountSetting = () => {
     }, 1500);
   };
 
-  const handleAddCar = () => {
-    const data = {
-      id: carData?.length + 1,
-      carCategory,
-      carName: selectedCar?.name,
-      plateNo,
-    };
-
-    
-    dispatch(storeCarData(data));
-    setCarCategory('')
-    setPlateNo('')
-    setSelectedCar('')
-    setIsAddNewCar(false);
-
-  };
-
-
   const filterSearch = searchCar
     ? carLogoJson?.filter(item =>
-        item?.name?.toLowerCase()?.includes(searchCar.toLowerCase()),
-      )
+      item?.name?.toLowerCase()?.includes(searchCar.toLowerCase()),
+    )
     : carLogoJson;
 
   return (
@@ -115,7 +147,7 @@ const AccountSetting = () => {
           </View>
         </View>
 
-        <TouchableOpacity     onPress={() => setIsAddNewCar(!isAddNewCar)}>
+        <TouchableOpacity onPress={() => setIsAddNewCar(!isAddNewCar)}>
           <Ionicons name={'car-sport-outline'} size={25} color={colors.black} />
           <Entypo
             name={'plus'}
@@ -133,107 +165,6 @@ const AccountSetting = () => {
         <Ionicons name={'car-sport-outline'} size={25} color={colors.black} />
         <CustomText>{t('yourCars')}</CustomText>
       </View>
-
-      {/* {isAddNewCar ? (
-        <View style={styles.addCarContainer}>
-          <View style={styles.addCarRow}>
-            <CustomText style={styles.vehicleBrand}>
-              {t('vehicleBrand')}
-            </CustomText>
-            <TouchableOpacity
-              onPress={() => setIsCarModal(true)}
-              style={styles.selectCarBtn}
-            >
-              <CustomText style={styles.selectCarText}>
-                {selectedCar ? selectedCar?.name : t('selectCar')}
-              </CustomText>
-              <Feather
-                name={I18nManager.isRTL ? 'chevron-left' : 'chevron-right'}
-                size={20}
-                color={colors.gray}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.inputRow}>
-            <TextInput
-              placeholder={t('category')}
-              placeholderTextColor={colors.gray}
-              style={styles.inputField}
-              numberOfLines={1}
-              maxLength={10}
-              value={carCategory}
-              onChangeText={setCarCategory}
-            />
-            <TextInput
-              placeholder={t('plateNo')}
-              placeholderTextColor={colors.gray}
-              style={styles.inputField}
-              numberOfLines={1}
-              maxLength={10}
-              value={plateNo}
-              onChangeText={setPlateNo}
-            />
-          </View>
-
-          <CustomButton
-            title={t('save')}
-            style={styles.addBtn}
-            btnTxtStyle={styles.addBtnTxt}
-            onPress={handleAddCar}
-          />
-        </View>
-      ) : carCategory && plateNo && selectedCar ? (
-        <FlatList
-          data={carData}
-          keyExtractor={(item, index) => index?.toString()}
-          horizontal
-          style={{ flex: 1 }}
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item, index }) => {
-            return (
-              <View style={{width:width}}>
-              <View style={styles.carDetailsRow}>
-                <Image
-                  resizeMode="contain"
-                  source={carImages[item?.carName]}
-                  style={styles.carImage}
-                />
-
-                <View style={styles.carInfoContainer}>
-                  <CustomText style={styles.carCategory}>
-                    {carCategory}
-                  </CustomText>
-                  <CustomText style={styles.plateNo}>{plateNo}</CustomText>
-                </View>
-
-                <View style={styles.deleteIconContainer}>
-                  <TouchableOpacity onPress={handleDelete}>
-                    <Ionicons
-                      name={'trash-outline'}
-                      size={15}
-                      color={colors.gray}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-              </View>
-            );
-          }}
-        />
-      ) : (
-        <View style={styles.noCarsContainer}>
-          <CustomText style={styles.noCarsText}>{t('noCars')}</CustomText>
-
-          <CustomButton
-            title={t('addNewCar')}
-            style={styles.addNewCarBtn}
-            btnTxtStyle={styles.addNewCarTxt}
-            onPress={() => setIsAddNewCar(true)}
-          />
-        </View>
-      )} */}
 
       {isAddNewCar && (
         <View style={styles.addCarContainer}>
@@ -285,7 +216,7 @@ const AccountSetting = () => {
           />
         </View>
       )
-     }
+      }
 
       {/* :
         <View style={styles.noCarsContainer}>
@@ -301,33 +232,25 @@ const AccountSetting = () => {
 
 
 
-{/* Lets do Testing */}
-{
-  carData?.length > 0 ?
-   <View style={{paddingHorizontal:20}}>
-        <AddedCarData />
-   </View>
+      {/* Lets do Testing */}
+      {
+        carData?.length > 0 ?
+          <View style={{ paddingHorizontal: 20 }}>
+            <AddedCarData carData={carData} />
+          </View>
+          :
+          !isAddNewCar &&
+          <View style={styles.noCarsContainer}>
+            <CustomText style={styles.noCarsText}>{t('noCars')}</CustomText>
 
-  :
-
-       !isAddNewCar &&
-         <View style={styles.noCarsContainer}>
-          <CustomText style={styles.noCarsText}>{t('noCars')}</CustomText>
-
-          <CustomButton
-            title={t('addNewCar')}
-            style={styles.addNewCarBtn}
-            btnTxtStyle={styles.addNewCarTxt}
-            onPress={() => setIsAddNewCar(true)}
-          />
-        </View>
-}
-
-
-
-
-
-
+            <CustomButton
+              title={t('addNewCar')}
+              style={styles.addNewCarBtn}
+              btnTxtStyle={styles.addNewCarTxt}
+              onPress={() => setIsAddNewCar(true)}
+            />
+          </View>
+      }
 
       <DividerLine
         h={true}
@@ -385,7 +308,7 @@ const AccountSetting = () => {
         label={'logout'}
         icon={<AntDesign name={'logout'} size={22} color={colors.red} />}
         red={true}
-        onpress={() => navigation.navigate('LoginScreen')}
+        onpress={() => { dispatch(logout()), navigation.replace('LoginScreen') }}
       />
 
       <TouchableOpacity style={styles.deleteAccountBtn}>
@@ -649,3 +572,107 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
   },
 });
+
+
+
+
+{/* {isAddNewCar ? (
+        <View style={styles.addCarContainer}>
+          <View style={styles.addCarRow}>
+            <CustomText style={styles.vehicleBrand}>
+              {t('vehicleBrand')}
+            </CustomText>
+            <TouchableOpacity
+              onPress={() => setIsCarModal(true)}
+              style={styles.selectCarBtn}
+            >
+              <CustomText style={styles.selectCarText}>
+                {selectedCar ? selectedCar?.name : t('selectCar')}
+              </CustomText>
+              <Feather
+                name={I18nManager.isRTL ? 'chevron-left' : 'chevron-right'}
+                size={20}
+                color={colors.gray}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputRow}>
+            <TextInput
+              placeholder={t('category')}
+              placeholderTextColor={colors.gray}
+              style={styles.inputField}
+              numberOfLines={1}
+              maxLength={10}
+              value={carCategory}
+              onChangeText={setCarCategory}
+            />
+            <TextInput
+              placeholder={t('plateNo')}
+              placeholderTextColor={colors.gray}
+              style={styles.inputField}
+              numberOfLines={1}
+              maxLength={10}
+              value={plateNo}
+              onChangeText={setPlateNo}
+            />
+          </View>
+
+          <CustomButton
+            title={t('save')}
+            style={styles.addBtn}
+            btnTxtStyle={styles.addBtnTxt}
+            onPress={handleAddCar}
+          />
+        </View>
+      ) : carCategory && plateNo && selectedCar ? (
+        <FlatList
+          data={carData}
+          keyExtractor={(item, index) => index?.toString()}
+          horizontal
+          style={{ flex: 1 }}
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item, index }) => {
+            return (
+              <View style={{width:width}}>
+              <View style={styles.carDetailsRow}>
+                <Image
+                  resizeMode="contain"
+                  source={carImages[item?.carName]}
+                  style={styles.carImage}
+                />
+
+                <View style={styles.carInfoContainer}>
+                  <CustomText style={styles.carCategory}>
+                    {carCategory}
+                  </CustomText>
+                  <CustomText style={styles.plateNo}>{plateNo}</CustomText>
+                </View>
+
+                <View style={styles.deleteIconContainer}>
+                  <TouchableOpacity onPress={handleDelete}>
+                    <Ionicons
+                      name={'trash-outline'}
+                      size={15}
+                      color={colors.gray}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              </View>
+            );
+          }}
+        />
+      ) : (
+        <View style={styles.noCarsContainer}>
+          <CustomText style={styles.noCarsText}>{t('noCars')}</CustomText>
+
+          <CustomButton
+            title={t('addNewCar')}
+            style={styles.addNewCarBtn}
+            btnTxtStyle={styles.addNewCarTxt}
+            onPress={() => setIsAddNewCar(true)}
+          />
+        </View>
+      )} */}

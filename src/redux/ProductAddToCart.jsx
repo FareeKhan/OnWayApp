@@ -7,33 +7,29 @@ export const productAddToCart = createSlice({
     initialState: {
         cartProducts: [],
         totalPrice: '',
-        isPromo: false
+        subTotalPrice: null,
+        isPromo: false,
+        restaurentID: null,
+        vehicleID: null
     },
     reducers: {
         addProductToCart: (state, action) => {
-
-            const { productName, price, size,odo_id, counter,Variants,Variants_stock, id, image, subText,productWeight } = action.payload;
-            const newProductAddedToCart = { productName, odo_id,price, size, Variants_stock,Variants,counter, id, image, subText ,productWeight}
-
-            const existId = state.cartProducts?.find((item) => item?.id == id)
+            const existId = state.cartProducts?.find((item) => item?.id == action.payload?.id)
             if (!existId) {
-                state.cartProducts.push(newProductAddedToCart)
+                state.cartProducts.push(action.payload)
             } else {
-                existId.counter = counter
-                existId.size = size
-                existId.image = image
-                existId.Variants = Variants
-                existId.Variants_stock = Variants_stock
-                // existId.price = price * counter
-
+                existId.counter = action.payload?.counter
+                existId.image = action.payload?.image
             }
 
-            const finalPrice = state.cartProducts.reduce((total, item) => {
-                return total + item.counter * parseFloat(item.price);
-            }, 0)
-                .toFixed(2);
 
+            // ResaturentID
+            state.restaurentID = action.payload?.restaurantId
+
+            const finalPrice = state.cartProducts?.reduce((sum, item) => sum + (item?.total || 0))
             state.totalPrice = finalPrice
+
+            state.subTotalPrice = finalPrice
         },
         incrementCounter: (state, action) => {
             const product = state.cartProducts.find((item) => item.id === action.payload);

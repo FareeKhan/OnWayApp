@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { AccountStack, giftStack, HomeStack, WalletStack } from './StackNavigation';
+import { AccountStack, GiftStack, HomeStack, WalletStack } from './StackNavigation';
 import LoginScreen from '../screens/LoginScreen';
 import VerificationScreen from '../screens/VerificationScreen';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +25,8 @@ const AppNavigation = () => {
      useEffect(() => {
         i18next.changeLanguage(isLanguage)
     }, [isLanguage]);
+
+
 
   return (
     <Stack.Navigator
@@ -50,24 +52,10 @@ export const BottomNavigation = () => {
     return (
         <Tab.Navigator screenOptions={{
             headerShown: false,
-            // tabBarStyle: {
-            //     position: "absolute",
-            //     bottom: 20,
-            //     marginHorizontal: 20,
-            //     borderRadius: 18,
-            //     alignItems: "center",
-            //     justifyContent: "center",
-            //     height:60,
-            //     borderWidth:1,
-            //     borderColor:colors.black1,
-            //     paddingTop:10
-            // },
             tabBarHideOnKeyboard: true,
             tabBarActiveTintColor: colors.black,
             tabBarInactiveTintColor: colors.gray,
             tabBarShowLabel: true, 
-              
-   
         }}>
             <Tab.Screen
                 name="HomeStack"
@@ -88,7 +76,7 @@ export const BottomNavigation = () => {
        
             <Tab.Screen
                 name="giftStack"
-                component={giftStack}
+                component={GiftStack}
                 options={{
                     tabBarLabel: t('giftss'),
                     tabBarLabelStyle: {

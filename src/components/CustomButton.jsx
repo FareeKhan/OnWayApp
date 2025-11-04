@@ -63,7 +63,7 @@ const CustomButton = ({
         </Text>
       )}
 
-      {arrow && (
+      {arrow && !loader && (
         <AntDesign
           name={I18nManager.isRTL ? 'arrowleft' : 'arrowright'}
           color={colors.white}

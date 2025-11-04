@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderBox from '../components/HeaderBox';
 import { useTranslation } from 'react-i18next';
@@ -25,10 +25,21 @@ import KeyValue from '../components/KeyValue';
 import CustomButton from '../components/CustomButton';
 import CartProducts from '../components/CartProducts';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { addProductToCart } from '../redux/ProductAddToCart';
 
 const BasketScreen = () => {
   const { t } = useTranslation();
-const navigation = useNavigation()
+  const cartData = useSelector((state) => state?.cart?.cartProducts)
+  const navigation = useNavigation()
+  const [driverNote, setDriverNote] = useState('')
+  const subTotal = cartData?.reduce((sum, item) => sum + (item?.price * item?.counter || 0), 0)
+
+  const handleCheckout = () => {
+    navigation.navigate('CheckoutScreen',{
+      driverNote:driverNote
+    })
+  }
 
   return (
     <ScreenView scrollable={true} mh={true}>
@@ -36,15 +47,19 @@ const navigation = useNavigation()
         style={styles.header}
         title={t('Basket')}
         smallLogo={false}
-        innerStyle={{width:"60%"}}
+        innerStyle={{ width: "60%" }}
       />
-          <Subtitle style={{textAlign:'center'}}>Cofeea Shop , Business Bay</Subtitle>
+      <Subtitle style={{ textAlign: 'center' }}>Cofeea Shop , Business Bay</Subtitle>
 
-      <CartProducts data={[1,2]}/>
+      <CartProducts data={cartData} />
 
       <DividerLine style={styles.dividerTop} h={true} />
 
-      <MessageBox borderRemove={true} />
+      <MessageBox
+        borderRemove={true}
+        onChangeText={setDriverNote}
+        value={driverNote}
+      />
       <DividerLine style={styles.dividerBottom} h={true} />
 
       <View style={{ marginHorizontal: 20 }}>
@@ -64,13 +79,13 @@ const navigation = useNavigation()
 
         <HeaderWithAll title={t('paymentSummary')} />
 
-        <KeyValue leftValue={t('Subtotal')} rightValue={'66.00'} />
-        <KeyValue leftValue={t('DeliveryFee')} rightValue={'66.00'} />
-        <KeyValue leftValue={t('ServiceFee')} rightValue={'66.00'} />
+        <KeyValue leftValue={t('Subtotal')} rightValue={subTotal} />
+        <KeyValue leftValue={t('DeliveryFee')} rightValue={'0.00'} />
+        <KeyValue leftValue={t('ServiceFee')} rightValue={'0.00'} />
         <KeyValue
           boldData={true}
           leftValue={t('TotalAmount')}
-          rightValue={'66.00'}
+          rightValue={subTotal}
         />
 
         <TouchableOpacity>
@@ -88,9 +103,8 @@ const navigation = useNavigation()
             style={styles.bottomBtn}
           />
 
-          <CustomButton title={t('checkout')}  style={{ width: '48%' }}
-          onPress={()=>navigation.navigate('CheckoutScreen')}
-          
+          <CustomButton title={t('checkout')} style={{ width: '48%' }}
+            onPress={() => handleCheckout()}
           />
         </View>
       </View>
@@ -101,7 +115,7 @@ const navigation = useNavigation()
 export default BasketScreen;
 
 const styles = StyleSheet.create({
- 
+
   header: {
     width: '85%',
     marginHorizontal: 20,
@@ -129,7 +143,7 @@ const styles = StyleSheet.create({
     width: '70%',
     fontFamily: fonts.semiBold,
     fontSize: 13,
-    textAlign: I18nManager.isRTL ?   "right" :"left"
+    textAlign: I18nManager.isRTL ? "right" : "left"
   },
   submitText: {
     marginLeft: 'auto',

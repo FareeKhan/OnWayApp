@@ -149,9 +149,24 @@
     "home":"Home",
     "giftss":"Gifts",
     "account":"Account",
+    "usePhoneNumber":"Use your Phone Number to Join us and to get started",
 
-    
-    "usePhoneNumber":"Use your Phone Number to Join us and to get started"
+
+
+
+    "enterPhoneNo":"Please Enter Phone Number",
+    "pleaseEnterCode":"Please Enter OTP",
+    "noCorrect":"Phone Number is not correct",
+    "otpWrong":"OTP is not correct",
+    "confirm":"Confirm",
+    "unTitled":"Untitled",
+    "vehicleAdded":"Vehicle added successfully",
+    "vehicleNotAdded":"Vehicle is not added",
+    "vehicleDeleted":"Vehicle deleted successfully",
+    "pleaseSelectCar" :"Please Select the Car",
+    "noDataFound" :"No Product Found",
+    "driverInstruction" :"Driver Instruction",
+    "invalid" :"Invalid Number",
 
 
 }

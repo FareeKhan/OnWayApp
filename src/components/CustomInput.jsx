@@ -29,20 +29,22 @@ const CustomInput = ({
   filter = true,
   inputExtraStyle,
   style,
+  value,
+  onChangeText,
   ...props
 }) => {
   const { t } = useTranslation();
   return (
     <View style={{}}>
       {label && <CustomText style={styles.label}>{t(label)}</CustomText>}
-      <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:17}}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 17 }}>
         <View
           style={[
             styles.container,
             true && {
               marginBottom: 0,
-              width:"90%",
-              backgroundColor:colors.gray5
+              width: "90%",
+              backgroundColor: colors.gray5
             },
             style,
           ]}
@@ -53,6 +55,8 @@ const CustomInput = ({
           <TextInput
             placeholder={t(placeholder)}
             placeholderTextColor={colors.gray1}
+            value={value}
+            onChangeText={onChangeText}
             style={[
               styles.inputStyle,
               icon && { width: '90%' },
@@ -61,8 +65,8 @@ const CustomInput = ({
             {...props}
           />
         </View>
-      {filter&&  <TouchableOpacity>
-         <Filter />
+        {filter && <TouchableOpacity>
+          <Filter />
         </TouchableOpacity>}
       </View>
     </View>

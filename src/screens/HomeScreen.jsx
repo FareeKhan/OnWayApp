@@ -8,16 +8,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderBox from '../components/HeaderBox';
-import HeaderWithAll from '../components/HeaderWithAll';
 import { useTranslation } from 'react-i18next';
 import CustomCarousel from '../components/CustomCarousel';
 import ShopsDataCard from '../components/ShopsDataCard';
 import CustomButton from '../components/CustomButton';
 import MapView from 'react-native-maps';
-import { shopsData } from '../constants/data';
+import { catData, imageUrl, shopsData } from '../constants/data';
 import CustomText from '../components/CustomText';
 import Subtitle from '../components/Subtitle';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -25,28 +24,120 @@ import { colors } from '../constants/colors';
 import { fonts } from '../constants/fonts';
 import { useNavigation } from '@react-navigation/native';
 import CustomInput from '../components/CustomInput';
+import { fetchCategories, fetchResaurentsByCategory } from '../userServices/UserService';
+import FastImage from 'react-native-fast-image';
+import ScreenLoader from '../components/ScreenLoader';
+import { getAddressFromCoordinates, locationPermission } from '../constants/helper';
+import Geolocation from '@react-native-community/geolocation';
+import EmptyData from '../components/EmptyData';
 
-const { width,height } = Dimensions.get('screen');
+const { width, height } = Dimensions.get('screen');
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const [isListingView, setIsListingView] = useState(true);
   const [selectedView, setSelectedView] = useState('Home');
+  const [categoriesArray, setCategoriesArray] = useState([]);
+  const [restaurantsByCategory, setRestaurantsByCategory] = useState([])
+  const [restaurentLoader, setRestaurentLoader] = useState(false)
+  const [address, setAddress] = useState(false)
+  const [isLoader, setIsLoader] = useState(false)
+  const [search, setSearch] = useState('')
+  const filterSearchCategories = search ? categoriesArray?.filter((item) => item?.name?.toLowerCase()?.includes(search?.toLowerCase())) : categoriesArray
 
+
+  useEffect(() => {
+    categoriesData()
+    fetchUserCurrentLocation()
+  }, [])
+
+  // useEffect(() => {
+  //   categoriesData()
+  // }, [selectedView])
+
+  const categoriesData = async () => {
+    setIsLoader(true)
+    try {
+      const result = await fetchCategories();
+      if (result?.success) {
+        setCategoriesArray(result?.data)
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setIsLoader(false)
+    }
+  };
+
+  const resaurentsByCategory = async (id) => {
+    try {
+      setRestaurentLoader(true)
+      const result = await fetchResaurentsByCategory(id);
+      if (result?.success) {
+        setRestaurantsByCategory(result?.data)
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setRestaurentLoader(false)
+    }
+  };
+
+  const handleCategory = (id) => {
+    setSelectedView('ListView')
+    resaurentsByCategory(id)
+  }
   const HomeView = () => {
     return (
       <View style={{ top: -20 }}>
-        <CustomCarousel />
-
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginVertical: 15,
+        {
+          search == '' &&
+          <CustomCarousel />
+        }
+        <FlatList
+          data={filterSearchCategories}
+          keyExtractor={(item, index) => index?.toString()}
+          numColumns={2}
+          columnWrapperStyle={{ justifyContent: "space-between", }}
+          contentContainerStyle={{ gap: 20, marginVertical: 20 }}
+          ListEmptyComponent={<EmptyData/>}
+          renderItem={({ item, index }) => {
+            const remotePath = `${imageUrl}${item?.image}`
+            return (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => handleCategory(item?.id)}
+                  style={{
+                    backgroundColor: colors.gray5,
+                    height: 170,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 10,
+                    width: width / 2.3
+                  }}
+                >
+                  <FastImage
+                    source={{ uri: remotePath }}
+                    style={{ width: 110, height: 90 }}
+                    resizeMode='cover'
+                  />
+                  <CustomText>{item?.name}</CustomText>
+                </TouchableOpacity>
+              </View>
+            )
           }}
-        >
+
+
+        />
+
+        {
+          search == '' &&
           <TouchableOpacity
             onPress={() => setSelectedView('ListView')}
             style={{
@@ -55,56 +146,19 @@ const HomeScreen = () => {
               height: 170,
               alignItems: 'center',
               justifyContent: 'center',
-              width: '48%',
               borderRadius: 10,
             }}
           >
             <Image
-              source={require('../assets/whiteCup.png')}
+              source={require('../assets/google.png')}
               style={{ width: 110, height: 90 }}
             />
-            <CustomText>Coffee</CustomText>
+            <CustomText>Coffee Shops Near to you</CustomText>
           </TouchableOpacity>
+        }
 
-          <TouchableOpacity
-               onPress={() => setSelectedView('ListView')}
-            style={{
-              gap: 8,
-              backgroundColor: colors.gray5,
-              height: 170,
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '48%',
-              borderRadius: 10,
-            }}
-          >
-            <Image
-              source={require('../assets/giftBox.png')}
-              style={{ width: 110, height: 90 }}
-            />
-            <CustomText>Offers</CustomText>
-          </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity
-             onPress={() => setSelectedView('ListView')}
-          style={{
-            gap: 8,
-            backgroundColor: colors.gray5,
-            height: 170,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 10,
-          }}
-        >
-          <Image
-            source={require('../assets/google.png')}
-            style={{ width: 110, height: 90 }}
-          />
-          <CustomText>Coffee Shops Near to you</CustomText>
-        </TouchableOpacity>
 
-        {/* <ShopsDataCard data={[1, 2, 3, 4, 5]} /> */}
       </View>
     );
   };
@@ -113,9 +167,9 @@ const HomeScreen = () => {
     return (
       <View>
         <Subtitle style={{ fontSize: 13, marginTop: 25, marginBottom: 10 }}>
-          Coffee Avenue
+          {restaurantsByCategory?.category?.name}
         </Subtitle>
-        <ShopsDataCard data={[1, 2, 3, 4, 5]} />
+        <ShopsDataCard data={restaurantsByCategory?.restaurants} />
       </View>
     );
   };
@@ -197,25 +251,69 @@ const HomeScreen = () => {
     );
   };
 
+
+  const fetchUserCurrentLocation = async () => {
+    try {
+      const result = await locationPermission()
+      if (result == 'granted') {
+        Geolocation.getCurrentPosition((position) => {
+          console.log('casduasd', position)
+          const { longitude, latitude } = position.coords
+          console.log('longitude, latitude ', longitude, latitude)
+          const address = getAddressFromCoordinates(longitude, latitude)
+          if (address) {
+            setAddress(address)
+          }
+        })
+      }
+      console.log('resualtae', result)
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+
+
+  if (isLoader) {
+    return (
+      <ScreenLoader />
+    )
+  }
+
+
   return (
     <View style={{ flex: 1 }}>
       <ScreenView scrollable={true} mh={selectedView == 'MapView'}>
-        <HeaderBox  style={selectedView == 'MapView' && {paddingHorizontal:20}} onlyLogo={selectedView == 'Home'} onPressBack={()=>setSelectedView('Home')} />
+        <HeaderBox style={selectedView == 'MapView' && { paddingHorizontal: 20 }} onlyLogo={selectedView == 'Home'} onPressBack={() => setSelectedView('Home')} />
 
-        <View style={[{marginTop:15},selectedView == 'MapView' && { marginHorizontal: 20 }]}>
-          <CustomInput icon={true} placeholder={t('search')} />
+        <View style={[{ marginTop: 15 }, selectedView == 'MapView' && { marginHorizontal: 20 }]}>
+          <CustomInput
+            icon={true}
+            placeholder={t('search')}
+            value={search}
+            onChangeText={setSearch}
+
+          />
         </View>
 
         {selectedView == 'Home' && (
           <>
             <CustomText style={{ marginTop: 20, marginBottom: 10 }}>
-              {t('yourLocation')}: Business Bay Dubai
+              {t('yourLocation')}: {address}
             </CustomText>
+
             <HomeView />
+
           </>
         )}
 
-        {selectedView == 'ListView' && <ListView />}
+        {selectedView == 'ListView' &&
+          <>
+            {
+              restaurentLoader ? <ScreenLoader /> : <ListView />
+            }
+          </>
+        }
       </ScreenView>
 
       {selectedView == 'MapView' && <MapViewComp />}
@@ -225,7 +323,7 @@ const HomeScreen = () => {
           <CustomButton
             onPress={() => setSelectedView(selectedView == 'ListView' ? 'MapView' : "ListView")}
             title={selectedView == 'ListView' ? t('mapView') : t('listView')}
-            style={[styles.bottomBtn,selectedView == 'MapView' &&{width:"70%",height:50}]}
+            style={[styles.bottomBtn, selectedView == 'MapView' && { width: "70%", height: 50 }]}
           />
         )}
       </>
@@ -293,8 +391,8 @@ const styles = StyleSheet.create({
   },
   map: {
     width: '100%',
-    height:  height/1.5,
-    zIndex:-100
+    height: height / 1.5,
+    zIndex: -100
   },
   mapListOverlay: {
     zIndex: 100,

@@ -1,10 +1,11 @@
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import CustomText from './CustomText';
 import { fonts } from '../constants/fonts';
 import { colors } from '../constants/colors';
 import { useTranslation } from 'react-i18next';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
+const { height } = Dimensions.get('screen')
 
 const CustomModal = ({
   modalVisible,
@@ -13,12 +14,13 @@ const CustomModal = ({
   children,
   style,
   textStyle,
-  animationType
+  animationType,
+  modalHeight
 }) => {
   const { t } = useTranslation();
   return (
     <Modal
-      animationType={animationType ? animationType :"slide" }
+      animationType={animationType ? animationType : "slide"}
       transparent={true}
       visible={modalVisible}
       onRequestClose={() => {
@@ -33,7 +35,7 @@ const CustomModal = ({
         />
 
         <View style={styles.modalView}>
-          <View style={styles.innerModelView}>
+          <View style={[styles.innerModelView, modalHeight && { height: height / 1.2 }]}>
             <View style={styles.dragHandle} />
             <View
               style={{

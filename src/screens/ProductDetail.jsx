@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   I18nManager,
   ImageBackground,
   StyleSheet,
@@ -6,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderBox from '../components/HeaderBox';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,7 +19,7 @@ import CustomText from '../components/CustomText';
 import { fonts } from '../constants/fonts';
 import Feather from 'react-native-vector-icons/Feather';
 import Subtitle from '../components/Subtitle';
-import { birthdayWishes, currency, extraData } from '../constants/data';
+import { mainUrl } from '../constants/data';
 import DividerLine from '../components/DividerLine';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
@@ -26,26 +27,63 @@ import IncrementDecrement from '../components/IncrementDecrement';
 import ProductDataCard from '../components/ProductDataCard';
 import SuggestedMsgsModal from '../components/SuggestedMsgsModal';
 import { useNavigation } from '@react-navigation/native';
+import { fetchProductDetails, fetchSuggestedMsgs } from '../userServices/UserService';
+import { useDispatch } from 'react-redux';
+import { addProductToCart } from '../redux/ProductAddToCart';
+import ScreenLoader from '../components/ScreenLoader';
 
 const ProductDetail = ({ route }) => {
   const { t } = useTranslation();
-  const { isGifterPage } = route?.params || '';
-
+  const dispatch = useDispatch()
+  const { isGifterPage, id, restaurant_id } = route?.params || '';
   const navigation = useNavigation();
 
   const [counter, setCounter] = useState(1);
-  const [data, setData] = useState([]);
+  const [selectedExtras, setSelectedExtras] = useState([]);
+  const [productData, setProductData] = useState([]);
+  const [suggestedMessages, setSuggestedMessages] = useState([]);
+
   const [selectedFilter, setSelectedFilter] = useState('customizeItem');
   const [modalVisible, setModalVisible] = useState(false);
   const [rcvrNameOnSticker, setRcvrNameOnSticker] = useState('');
   const [msgForReceiver, setMsgForReceiver] = useState('');
+  const [addNote, setAddNote] = useState('');
 
-  const onPressCheckBox = item => {
-    if (data?.includes(item?.id)) {
-      setData(innerData => innerData.filter(inner => inner !== item?.id));
-    } else {
-      setData(innerData => [...innerData, item?.id]);
+  const [imageLoader, setImageLoader] = useState(true);
+  const [isLoader, setIsLoader] = useState(true);
+
+  useEffect(() => {
+    loadProductData()
+    loadSuggestedMsgs()
+  }, [])
+
+  const loadProductData = async () => {
+    setIsLoader(true)
+    try {
+      const result = await fetchProductDetails(id)
+      if (result?.success) {
+        setProductData(result?.data)
+      }
+    } catch (ee) {
+      console.log('ee', ee)
+    } finally {
+      setIsLoader(false)
     }
+  }
+  const loadSuggestedMsgs = async () => {
+    try {
+      const result = await fetchSuggestedMsgs(restaurant_id)
+      if (result?.success) {
+        setSuggestedMessages(result?.data)
+      }
+    } catch (ee) {
+      console.log('ee', ee)
+    }
+  }
+
+  // UI Data Below
+  const onPressCheckBox = item => {
+    setSelectedExtras((prev) => prev?.includes(item) ? prev?.filter((i) => i != item) : [...prev, item])
   };
 
   const incrementCounter = () => setCounter(counter + 1);
@@ -54,43 +92,84 @@ const ProductDetail = ({ route }) => {
   };
 
   const ExtraDataItems = () => {
-    return extraData?.map((item, index) => (
+    return productData?.product_extras?.map((item, index) => (
       <TouchableOpacity
         key={index}
         style={styles.extraItem}
         onPress={() => onPressCheckBox(item)}
       >
-        <CustomText>{item?.name}</CustomText>
+        <CustomText>{item}</CustomText>
         <View
           style={[
             {
-              width: 15,
-              height: 15,
+              width: 18,
+              height: 18,
               borderWidth: 1,
               borderColor: colors.black,
+              borderRadius: 2,
+              alignItems: "center",
+              justifyContent: "center"
             },
-            data?.includes(item?.id) && { backgroundColor: colors.primary },
+            selectedExtras?.includes(item) && { backgroundColor: colors.primary },
           ]}
         >
-          {data?.includes(item?.id) && (
+          {selectedExtras?.includes(item) && (
             <Feather name={'check'} color={colors.white} size={13} />
           )}
         </View>
       </TouchableOpacity>
     ));
   };
+
   const handleRandomlySelectMsg = () => {
-    const selectIndex = Math.floor(Math.random() * birthdayWishes?.length);
-    setMsgForReceiver(birthdayWishes[selectIndex]?.message);
+    const selectIndex = Math.floor(Math.random() * suggestedMessages?.messages?.length);
+    setMsgForReceiver(suggestedMessages?.messages[selectIndex]?.message);
   };
+
+  const addToCart = () => {
+    const quantity = Number(counter)
+    const price = Number(productData?.price)
+    const data = {
+      id: productData?.id,
+      title: productData?.name,
+      description: productData?.description,
+      counter: quantity,
+      price: price,
+      image: `${mainUrl}${productData?.image}`,
+      extraItem: selectedExtras,
+      productNotes: addNote,
+      nameOnSticker: rcvrNameOnSticker,
+      msgForReceiver: msgForReceiver,
+      restaurantId: productData?.restaurant_id,
+      categoryId: productData?.category_id,
+    }
+    dispatch(addProductToCart(data))
+    navigation.navigate('BasketScreen')
+  }
+
+  if (isLoader) {
+    return (
+      <ScreenLoader />
+    )
+  }
 
   return (
     <View style={styles.container}>
       <ScreenView scrollable={true} mh={true} extraBottomSpace={true}>
         {/* Image Section */}
+
+        {
+          isLoader &&
+          <View style={[styles.productImage, { position: "absolute", zIndex: 1000, top: 60 }]}>
+            <ActivityIndicator color={colors.black} />
+          </View>
+        }
+
         <ImageBackground
           style={styles.productImage}
-          source={require('../assets/productImage.png')}
+          onLoadEnd={() => setImageLoader(false)}
+          // source={productData?.image ? { uri: `${mainUrl}${productData?.image}` } : require('../assets/productImage.png')}
+          source={{ uri: `${mainUrl}${productData?.image}` }}
         >
           <HeaderBox
             style={styles.headerBox}
@@ -120,7 +199,7 @@ const ProductDetail = ({ route }) => {
           {selectedFilter === 'customizeItem' ? (
             <View>
               <HeaderWithAll
-                title={t('Espresso single shot Ethiopian beans - Hot')}
+                title={productData?.name}
                 style={styles.headerTitle}
               />
 
@@ -142,12 +221,10 @@ const ProductDetail = ({ route }) => {
                 {t('Descitpion')}
               </CustomText> */}
               <CustomText style={styles.descriptionText}>
-                Espresso single shot Golden
-                fried Chicken pieces wok -tossed with hot and spicy schezwan
-                fried rice with vegetables like green beans, carrots and bell
+                {productData?.description}
               </CustomText>
 
-              <DividerLine h={true} mv={true}/>
+              <DividerLine h={true} mv={true} />
 
               <View style={styles.extrasHeader}>
                 <CustomText style={styles.extrasTitle}>
@@ -174,7 +251,7 @@ const ProductDetail = ({ route }) => {
                       size={15}
                       color={colors.black}
                     />
-                  <CustomText style={styles.noteLabel}>
+                    <CustomText style={styles.noteLabel}>
                       {t('AddANot')}
                     </CustomText>
                   </View>
@@ -183,8 +260,8 @@ const ProductDetail = ({ route }) => {
                     multiline
                     placeholderTextColor={colors.gray1}
                     style={styles.noteInput}
-                    value={rcvrNameOnSticker}
-                    onChangeText={setRcvrNameOnSticker}
+                    value={addNote}
+                    onChangeText={setAddNote}
                   />
                 </View>
               )}
@@ -232,7 +309,7 @@ const ProductDetail = ({ route }) => {
                       numberOfLines={1}
                       style={{ marginVertical: 10, fontSize: 10 }}
                     >
-                      Espresso single shot
+                      {productData?.name}
                     </CustomText>
 
                     <CustomText style={{ fontSize: 8 }}>
@@ -248,7 +325,7 @@ const ProductDetail = ({ route }) => {
                     <CustomText
                       style={{ marginTop: 20, marginBottom: 5, fontSize: 10 }}
                     >
-                      Powered by Koubak
+                      Powered by Onway
                     </CustomText>
                   </View>
                 </ImageBackground>
@@ -262,7 +339,7 @@ const ProductDetail = ({ route }) => {
                 filter={false}
                 value={rcvrNameOnSticker}
                 onChangeText={setRcvrNameOnSticker}
-                style={{width:"100%"}}
+                style={{ width: "100%" }}
               />
 
               <CustomInput
@@ -270,7 +347,7 @@ const ProductDetail = ({ route }) => {
                 placeholder={t('messageOnSticker')}
                 multiline
                 filter={false}
-                style={[styles.messageInput,{width:"100%"}]}
+                style={[styles.messageInput, { width: "100%" }]}
                 inputExtraStyle={styles.messageInputExtra}
                 value={msgForReceiver}
                 onChangeText={setMsgForReceiver}
@@ -304,19 +381,20 @@ const ProductDetail = ({ route }) => {
                 setModalVisible={setModalVisible}
                 modalVisible={modalVisible}
                 setSelectedMsg={setMsgForReceiver}
+                data={suggestedMessages?.messages}
               />
             </View>
           )}
 
           {/* */}
 
-          {isGifterPage && (
+          {/* {isGifterPage && (
             <View style={{ marginTop: 15 }}>
               <HeaderWithAll title={t('relatedProduct')} />
 
               <ProductDataCard data={[1, 2, 3, 4, 5, 6]} />
             </View>
-          )}
+          )} */}
         </View>
       </ScreenView>
 
@@ -331,33 +409,21 @@ const ProductDetail = ({ route }) => {
           />
 
           <CustomButton
-            totalPrice={'31.00'}
+            totalPrice={(productData?.price * counter)?.toFixed(2)}
             title={isGifterPage ? 'add' : 'add'}
             onPress={() => {
               isGifterPage
                 ? navigation.navigate('GiftFilterScreen', {
-                    thirdStepContinue: [1, 2],
-                  })
-                : navigation.navigate('BasketScreen');
+                  thirdStepContinue: [1, 2],
+                })
+                : addToCart();
             }}
             style={{ width: '55%' }}
           />
         </View>
 
-        {/* <CustomButton
-          totalPrice={'31.00'}
-          title={isGifterPage ? 'continueRcvr' : 'AddToCart'}
-          counter={counter}
-          onPress={() => {
-            isGifterPage
-              ? navigation.navigate('GiftFilterScreen', {
-                  thirdStepContinue: [1, 2],
-                })
-              : navigation.navigate('BasketScreen');
-          }}
-        /> */}
       </View>
-    </View>
+    </View >
   );
 };
 
@@ -415,9 +481,9 @@ const styles = StyleSheet.create({
   },
   descriptionText: {
     // width: '80%',
-    marginBottom: 5                           ,
-    marginTop:5,
-    fontSize:13
+    marginBottom: 5,
+    marginTop: 5,
+    fontSize: 13
   },
   extrasHeader: {
     marginBottom: 10,

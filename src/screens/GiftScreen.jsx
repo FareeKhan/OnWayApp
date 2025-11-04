@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderBox from '../components/HeaderBox';
 import CustomText from '../components/CustomText';
@@ -23,16 +23,56 @@ import GiftImage from '../components/GiftImage';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { useNavigation } from '@react-navigation/native';
+import { fetchReceivedGifts, fetchSentGifts } from '../userServices/UserService';
+import { useSelector } from 'react-redux';
 
 const { height } = Dimensions.get('screen');
 
 const GiftScreen = () => {
   const navigation = useNavigation()
+  const token = useSelector((state)=>state.auth.loginData?.token)
   const { t } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState('sendGift');
   const [isShowDetails, setIsShowDetails] = useState(false);
   const [isReceiverSender, setIsReceiverSender] = useState();
   const [isShowSenderDetail, setIsShowSenderDetail] = useState(false);
+
+
+
+
+  useEffect(() => {
+    getGifts()
+  }, [])
+
+  const getGifts = async () => {
+    try {
+
+      const [sentGiftReponse, receivedGiftReponse] = await Promise.all([fetchSentGifts(token), fetchReceivedGifts(token)])
+      if (sentGiftReponse?.success) {
+         
+      }
+
+      if (receivedGiftReponse?.success) {
+
+      }
+
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  //  const getSentGifts = async () => {
+  //   try {
+  //     const result = await fetchSentGifts();
+  //     if (result?.success) {
+  //       setCategoriesArray(result?.data)
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // };
+
+
 
   const RenderSendGiftsData = () => {
     return SentGiftsData?.map((item, index) => {
@@ -57,7 +97,7 @@ const GiftScreen = () => {
           <View>
             {isShowDetails ? (
               <GiftImage
-                handleHidePress={()=>setIsShowDetails(false)}
+                handleHidePress={() => setIsShowDetails(false)}
                 setIsShowDetails={setIsShowDetails}
                 imagePath={require('../assets/giftMSg.png')}
                 label={'Have a good day'}
@@ -66,8 +106,8 @@ const GiftScreen = () => {
               />
             ) : (
               <>
-                <GiftImage 
-                setIsShowDetails={setIsShowDetails}
+                <GiftImage
+                  setIsShowDetails={setIsShowDetails}
                 />
                 <CustomButton
                   onPress={() => setIsShowDetails(!isShowDetails)}
@@ -101,7 +141,7 @@ const GiftScreen = () => {
         <View key={item}>
           {isReceiverSender == index ? (
             <GiftImage
-               handleHidePress={() => setIsReceiverSender(null)}
+              handleHidePress={() => setIsReceiverSender(null)}
               onPress={() => setIsReceiverSender(null)}
               imagePath={require('../assets/giftMSg.png')}
               label={'Have a good day'}
@@ -194,7 +234,7 @@ const GiftScreen = () => {
             label={'Have a good day'}
             style={styles.secondGiftImage}
             senderName={'Muhammad'}
-                setIsShowDetails={setIsShowDetails}
+            setIsShowDetails={setIsShowDetails}
 
           />
 
@@ -215,8 +255,8 @@ const GiftScreen = () => {
           <CustomButton
             title={t('back')}
             onPress={() => setIsShowSenderDetail(false)}
-                 style={[styles.addItemCartBtn,{width:"22%"}]}
-              btnTxtStyle={styles.smallBtnText}
+            style={[styles.addItemCartBtn, { width: "22%" }]}
+            btnTxtStyle={styles.smallBtnText}
           />
 
           <TouchableOpacity>
@@ -229,14 +269,18 @@ const GiftScreen = () => {
     );
   };
 
+
+
+
+
   return (
     <ScreenView scrollable={true}>
       <HeaderBox logo={true} />
       <CustomText style={styles.giftsTitle}>{t('gifts')}</CustomText>
 
       <CustomButton
-      onPress={()=>navigation.navigate('GiftFilterScreen')}
-      title={t('sendGiftNow')} style={styles.sendGiftButton} />
+        onPress={() => navigation.navigate('GiftFilterScreen')}
+        title={t('sendGiftNow')} style={styles.sendGiftButton} />
 
       <FilterButton
         leftValue='sendGift'
@@ -245,7 +289,7 @@ const GiftScreen = () => {
         selectedFilter={selectedFilter}
       />
 
-      {selectedFilter =='sendGift' ? (
+      {selectedFilter == 'sendGift' ? (
         <RenderSendGiftsData />
       ) : isShowSenderDetail ? (
         <ShowAllDetails />
@@ -255,7 +299,7 @@ const GiftScreen = () => {
 
 
 
-          {/* { (
+      {/* { (
         <EmptyData title={t('noGift')} style={styles.emptyData} />
       )} */}
     </ScreenView>
@@ -339,7 +383,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  backBtn: { height: I18nManager.isRTL ?  40 : 20, width: '30%' },
+  backBtn: { height: I18nManager.isRTL ? 40 : 20, width: '30%' },
   deleteHistoryText: { fontSize: 12, color: colors.red },
   productName: {
     fontSize: 13,
@@ -361,8 +405,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     position: 'absolute',
     bottom: 50,
-    left: I18nManager.isRTL? null : 20,
-    right: I18nManager.isRTL? 20 : null,
+    left: I18nManager.isRTL ? null : 20,
+    right: I18nManager.isRTL ? 20 : null,
     borderColor: colors.primary,
   },
   detailsButtonText: {

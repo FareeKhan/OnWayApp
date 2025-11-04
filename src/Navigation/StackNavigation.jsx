@@ -49,7 +49,7 @@ export const HomeStack = () => {
 
 
 
-export const giftStack = () => {
+export const GiftStack = () => {
   return (
     <Stack.Navigator
       initialRouteName="GiftScreen"
@@ -135,6 +135,7 @@ export const AccountStack = () => {
       <Stack.Screen name="OrderScreens" component={OrderScreens} />
       <Stack.Screen name="OrderDetailsScreen" component={OrderDetailsScreen} />
       <Stack.Screen name="FavoriteScreen" component={FavoriteScreen} />
+      <Stack.Screen name="SuccessfulScreen" component={SuccessfulScreen} />
     </Stack.Navigator>
   );
 };

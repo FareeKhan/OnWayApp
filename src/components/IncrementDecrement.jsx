@@ -9,6 +9,8 @@ import React, { useState } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { colors } from '../constants/colors';
 import CustomText from './CustomText';
+import { decrementCounter, incrementCounter } from '../redux/ProductAddToCart';
+import { useDispatch } from 'react-redux';
 
 const IncrementDecrement = ({
   style,
@@ -16,11 +18,13 @@ const IncrementDecrement = ({
   onpressMinu,
   pCounter,
   firstBox,
+  item
 }) => {
+  const dispatch = useDispatch()
   const [counter, setCounter] = useState(1);
 
-  const incrementCounter = () => setCounter(counter + 1);
-  const decrementCounter = () => {
+  const incrementCounters = () => setCounter(counter + 1);
+  const decrementCounters = () => {
     if (counter > 1) setCounter(counter - 1);
   };
 
@@ -45,13 +49,13 @@ const IncrementDecrement = ({
         ]}
       >
         <TouchableOpacity
-          onPress={onpressMinu ? onpressMinu : decrementCounter}
+          onPress={onpressMinu ? onpressMinu : decrementCounters}
         >
           <AntDesign name={'minus'} size={20} color={colors.black} />
         </TouchableOpacity>
         <CustomText>{pCounter ? pCounter : counter}</CustomText>
         <TouchableOpacity
-          onPress={onpressPlus ? onpressPlus : incrementCounter}
+          onPress={onpressPlus ? onpressPlus : incrementCounters}
         >
           <AntDesign name={'plus'} size={20} color={colors.black} />
         </TouchableOpacity>
@@ -61,13 +65,13 @@ const IncrementDecrement = ({
     return (
       <View style={[styles.counterContainer, style]}>
         <TouchableOpacity
-          onPress={onpressMinu ? onpressMinu : decrementCounter}
+          onPress={() => dispatch(decrementCounter(item?.id))}
         >
           <AntDesign name={'minus'} size={20} color={colors.black} />
         </TouchableOpacity>
-        <CustomText>{pCounter ? pCounter : counter}</CustomText>
+        <CustomText>{item?.counter}</CustomText>
         <TouchableOpacity
-          onPress={onpressPlus ? onpressPlus : incrementCounter}
+          onPress={() => dispatch(incrementCounter(item?.id))}
         >
           <AntDesign name={'plus'} size={20} color={colors.black} />
         </TouchableOpacity>

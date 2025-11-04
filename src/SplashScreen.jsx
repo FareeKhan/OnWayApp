@@ -2,23 +2,30 @@ import { Image, StatusBar, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { colors } from './constants/colors'
 import { useNavigation } from '@react-navigation/native'
+import { useSelector } from 'react-redux'
 
 const SplashScreen = () => {
-const navigation = useNavigation()
-    const [appStart, setAppStart] = useState(true);
+  const navigation = useNavigation()
+  const userId = useSelector((state) => state?.auth?.loginData?.id)
+
+
   
-    useEffect(() => {
-      const timer = setTimeout(() => {
-       navigation.replace('LoginScreen')
-      }, 1500);
-  
-      return () => clearTimeout(timer);
-    }, []);
-  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (userId) {
+        navigation.replace('BottomNavigation')
+      } else {
+        navigation.replace('LoginScreen');
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [userId]);
+
   return (
     <View style={styles.mainContainer}>
-      <StatusBar  barStyle={'dark-content'}/>
-       <Image source={require('./assets/logo.png')}  />
+      <StatusBar barStyle={'dark-content'} />
+      <Image source={require('./assets/logo.png')} />
     </View>
   )
 }
@@ -26,10 +33,10 @@ const navigation = useNavigation()
 export default SplashScreen
 
 const styles = StyleSheet.create({
-  mainContainer:{
-    flex:1,
-    alignItems:"center",
-    justifyContent:"center",
-    backgroundColor:colors.white
+  mainContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.white
   }
 })

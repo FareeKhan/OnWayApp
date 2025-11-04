@@ -1,4 +1,4 @@
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderBox from '../components/HeaderBox';
@@ -17,16 +17,70 @@ import { useNavigation } from '@react-navigation/native';
 import CustomModal from '../components/CustomModal';
 import AddedCarData from '../components/AddedCarData';
 import CartProducts from '../components/CartProducts';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchVehicles, getPaymentIntentApi, makeOrder } from '../userServices/UserService';
+import AddBrandedCar from '../components/AddBrandedCar';
+import { showMessage } from 'react-native-flash-message';
+import { clearCart } from '../redux/ProductAddToCart';
+import { useStripe } from '@stripe/stripe-react-native';
 
-const CheckoutScreen = ({ isHeader = true }) => {
+
+
+const CheckoutScreen = ({ isHeader = true, route }) => {
   const { t } = useTranslation();
+  const dispatch = useDispatch()
+  const cartData = useSelector((state) => state?.cart?.cartProducts)
+  const token = useSelector((state) => state?.auth?.loginData?.token)
+  const resID = useSelector((state) => state?.cart?.restaurentID)
+  const { driverNote } = route?.params
+
   const navigation = useNavigation();
   const [selectedPayment, setSelectedPayment] = useState(3);
   const [isScheduleModal, setIsScheduleModal] = useState(false);
   const [scheduleTimeArray, setScheduleTimeArray] = useState([]);
   const [selectedTime, setSelectedTime] = useState('');
+  const [selectedCarId, setSelectedCarId] = useState('')
+  const [loading, setLoading] = useState(false);
+  const [isOrderLoader, setIsOrderLoader] = useState(false);
 
   const paymentData = paymentCards(t);
+
+  const subTotal = cartData?.reduce((sum, item) => sum + (item?.price * item?.counter || 0), 0)
+
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+  const getPaymentIntent = async () => {
+    try {
+      const response = await getPaymentIntentApi(subTotal);
+      console.log('PaymentIntent API Response ===>', response);
+      return response;
+    } catch (error) {
+      console.log("Error fetching payment intent:", error);
+      return null;
+    }
+  };
+
+  const initializePaymentSheet = async () => {
+    const paymentIntent = await getPaymentIntent();
+
+    if (!paymentIntent) {
+      console.error("Failed to get payment intent");
+      Alert.alert("Error", "Unable to initialize payment.");
+      return;
+    }
+
+    const { error } = await initPaymentSheet({
+      paymentIntentClientSecret: paymentIntent,
+      merchantDisplayName: "CarsIt"
+    });
+
+    if (!error) {
+      setLoading(true);
+    } else {
+      console.error("PaymentSheet Initialization Error:", error);
+      Alert.alert("Error", error.message);
+    }
+  };
 
   const TopImageAddress = () => {
     return (
@@ -79,7 +133,10 @@ const CheckoutScreen = ({ isHeader = true }) => {
 
   useEffect(() => {
     getFutureTimeSlots();
+    initializePaymentSheet();
   }, []);
+
+
 
   const getFutureTimeSlots = () => {
     const startHour = 8;
@@ -106,6 +163,66 @@ const CheckoutScreen = ({ isHeader = true }) => {
     setIsScheduleModal(false);
   };
 
+
+  const handleCheckOutBtn = () => {
+    if (selectedCarId == '') {
+      showMessage({
+        type: "danger",
+        message: t("pleaseSelectCar")
+      })
+      return
+    }
+
+    if (selectedPayment == 2 || selectedPayment == 1) {
+      openPaymentSheet()
+    } else {
+      processOrder()
+    }
+  }
+
+
+  const processOrder = async () => {
+    setIsOrderLoader(true)
+    try {
+      const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId,subTotal)
+      if (response?.success) {
+        navigation.navigate('SuccessfulScreen')
+        dispatch(clearCart())
+      }
+      console.log('response', response)
+    } catch (error) {
+      console.log('error', error)
+      showMessage({
+        type: "danger",
+        message: error?.errors
+      })
+    } finally {
+      setIsOrderLoader(false)
+    }
+  }
+
+
+  const openPaymentSheet = async () => {
+    if (!loading) {
+      Alert.alert("Error", "Payment sheet not initialized.");
+      return;
+    }
+
+    const { error } = await presentPaymentSheet();
+
+    if (error) {
+      showMessage({
+        type: "danger",
+        message: error.message
+      })
+    } else {
+      // Alert.alert("Payment Success", "Your payment is confirmed!");
+      // Call MakeOrder API to confirm order after successful payment
+      // onPressCash();
+      processOrder()
+    }
+  };
+
   const isAppleSelected = selectedPayment == 1;
 
   return (
@@ -119,7 +236,7 @@ const CheckoutScreen = ({ isHeader = true }) => {
             title={t('checkout')}
             smallLogo={false}
           />
-          <Subtitle style={{textAlign:'center'}}>Cofeea Shop , Business Bay</Subtitle>
+          <Subtitle style={{ textAlign: 'center' }}>Cofeea Shop , Business Bay</Subtitle>
           {/* <Image
             source={require('../assets/shop.png')}
             style={styles.shopImage}
@@ -127,19 +244,19 @@ const CheckoutScreen = ({ isHeader = true }) => {
           <TopImageAddress /> */}
           <PickUpTimeBox />
 
-    <View style={{marginHorizontal:-20}}>
-        <CartProducts data={[1,2]} />
-    </View>
+          <View style={{ marginHorizontal: -20 }}>
+            <CartProducts />
+          </View>
 
         </>
       )}
 
-{/* 
-      <AddedCarData 
-      isBorder={true}
-      /> */}
 
-      <HeaderWithAll title={t('payWith')} style={{marginTop:25}} />
+      <View style={{ marginHorizontal: -20, borderTopWidth: 1, borderBottomWidth: 1, paddingTop: 20, paddingBottom: 15, marginTop: 10, borderColor: colors.gray9 }}>
+        <AddBrandedCar setSelectedCarId={setSelectedCarId} selectedCarId={selectedCarId} />
+      </View>
+
+      <HeaderWithAll title={t('payWith')} style={{ marginTop: 25 }} />
       <View style={styles.paymentList}>
         {paymentData?.map((item, index) => {
           return (
@@ -170,16 +287,16 @@ const CheckoutScreen = ({ isHeader = true }) => {
       </View>
 
       <HeaderWithAll title={t('paymentSummary')} />
-      <KeyValue leftValue={t('Subtotal')} rightValue={'66.00'} />
+      <KeyValue leftValue={t('Subtotal')} rightValue={subTotal} />
       <KeyValue
         leftValue={t('ServiceFee')}
-        rightValue={'66.00'}
+        rightValue={'0.00'}
         style={{ marginTop: -5 }}
       />
       <KeyValue
         boldData={true}
         leftValue={t('TotalAmount')}
-        rightValue={'66.00'}
+        rightValue={subTotal}
         style={{ marginTop: 10 }}
       />
       <TouchableOpacity style={styles.readFeesBtn}>
@@ -191,7 +308,8 @@ const CheckoutScreen = ({ isHeader = true }) => {
         title={isAppleSelected ? t('Pay') : t('payment')}
         btnTxtStyle={[{ fontSize: 16 }, isAppleSelected && { marginLeft: 3 }]}
         style={isAppleSelected && { backgroundColor: colors.black }}
-        onPress={() => navigation.navigate('SuccessfulScreen')}
+        loader={isOrderLoader}
+        onPress={() => handleCheckOutBtn()}
       />
 
       <CustomModal

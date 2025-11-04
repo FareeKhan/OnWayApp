@@ -1,15 +1,20 @@
-export const baseUrl = 'https://backend.alkwaityalawl.com/api';
+// export const mainUrl = 'https://onway.loca.lt/';
+// export const mainUrl = 'https://71a6865316cc.ngrok-free.app/';
+// export const mainUrl = 'https://onway.loca.lt/';
+export const mainUrl = 'http://192.168.70.67:8000/';
+export const baseUrl = `${mainUrl}api/`;
+export const imageUrl = `${mainUrl}uploads/`;
 export const SP_KEY =
   'pk_test_51PV9zKFt9d3eerZLogRwve2G5YO4ZUNIUnLCEFpiljRIfKVN7hI7dle16OjcnN2ly7T2vwmB9FWJG0JGzSMCQnNe00k69iWIhI';
-export const GOOGLE_API = 'AIzaSyAo2MfsEOJJqEyVA2iQ1xWVWcMQm_NnVV8';
+
+
+//  export const STRIPE_KEY = "pk_live_51MM5XtCQGm1ERl3NU2tG5pdUhQwumtVnVVqQqvBSgZgKMvRhdxBjFUtof70c8wU68lmohbQan37Z8NhBco3ukZiV00FjYSGpFK"
+ export const STRIPE_KEY = "pk_test_51SOZA0COzbE7fBAMwRoi2wspVojLIK9SiqI9I7DJUrYNpwCcdUQs3bUPWRPu11R8CmPGBpDullGI5e7liLrOtXzh00R4HTUs0u"
+
+export const GOOGLE_API = 'AIzaSyBJVhlenAMsRkF2yHARSey2mtIFEW2_rfo';
 import ApplePayMethod from '../assets/svg/ApplePayMethod.svg';
 import CreditCard from '../assets/svg/creditCart.svg';
-import CashOn from '../assets/svg/cash.svg';
 import Wallet from '../assets/svg/wallet.svg';
-import { colors } from './colors';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 
 // export const currency = 'SAR';
@@ -54,18 +59,15 @@ export const Countries = [
   },
 ];
 
-
-
-
 export const drinks = [
-  { id: 1, name: 'Cappuccino',items:[1,2,3] },
-  { id: 2, name: 'Espresso',items:[1,2,3,4,5] },
-  { id: 3, name: 'Latte',items:[1,] },
-  { id: 4, name: 'Americano',items:[1,2] },
-  { id: 5, name: 'Green Tea',items:[1,2,1,3,]  },
-  { id: 6, name: 'Masala Chai',items:[1,2,1,3,5,7,8]  },
-  { id: 7, name: 'Black Tea' ,items:[1,2,1,] },
-  { id: 8, name: 'Matcha',items:[1,2,1,9]  },
+  { id: 1, name: 'Cappuccino', items: [1, 2, 3] },
+  { id: 2, name: 'Espresso', items: [1, 2, 3, 4, 5] },
+  { id: 3, name: 'Latte', items: [1,] },
+  { id: 4, name: 'Americano', items: [1, 2] },
+  { id: 5, name: 'Green Tea', items: [1, 2, 1, 3,] },
+  { id: 6, name: 'Masala Chai', items: [1, 2, 1, 3, 5, 7, 8] },
+  { id: 7, name: 'Black Tea', items: [1, 2, 1,] },
+  { id: 8, name: 'Matcha', items: [1, 2, 1, 9] },
 ];
 
 export const extraData = [
@@ -353,3 +355,25 @@ export const shopsData = [
 ];
 
 
+export const catData = [
+  {
+    id: 1,
+    imagePath: require('../assets/whiteCup.png'),
+    title: "Coffee"
+  },
+  {
+    id: 2,
+    imagePath: require('../assets/giftBox.png'),
+    title: "Offers"
+  },
+  {
+    id: 3,
+    imagePath: require('../assets/giftBox.png'),
+    title: "Offers"
+  },
+  {
+    id: 4,
+    imagePath: require('../assets/whiteCup.png'),
+    title: "Coffee"
+  },
+]
