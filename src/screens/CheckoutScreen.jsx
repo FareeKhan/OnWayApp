@@ -18,7 +18,7 @@ import CustomModal from '../components/CustomModal';
 import AddedCarData from '../components/AddedCarData';
 import CartProducts from '../components/CartProducts';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchVehicles, getPaymentIntentApi, makeOrder } from '../userServices/UserService';
+import { fetchVehicles, getPaymentIntentApi, makeGiftOrder, makeOrder } from '../userServices/UserService';
 import AddBrandedCar from '../components/AddBrandedCar';
 import { showMessage } from 'react-native-flash-message';
 import { clearCart } from '../redux/ProductAddToCart';
@@ -31,8 +31,12 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   const dispatch = useDispatch()
   const cartData = useSelector((state) => state?.cart?.cartProducts)
   const token = useSelector((state) => state?.auth?.loginData?.token)
+    const userData = useSelector((state) => state?.auth?.loginData)
+  const giftCartData = useSelector((state) => state?.giftInfo?.giftProduct)
+
+console.log('---->>>s',giftCartData)
   const resID = useSelector((state) => state?.cart?.restaurentID)
-  const { driverNote } = route?.params
+  const { driverNote } = route?.params || ''
 
   const navigation = useNavigation();
   const [selectedPayment, setSelectedPayment] = useState(3);
@@ -51,7 +55,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
 
   const getPaymentIntent = async () => {
     try {
-      const response = await getPaymentIntentApi(subTotal);
+      const response = await getPaymentIntentApi(subTotal ||giftCartData?.price );
       console.log('PaymentIntent API Response ===>', response);
       return response;
     } catch (error) {
@@ -136,8 +140,6 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
     initializePaymentSheet();
   }, []);
 
-
-
   const getFutureTimeSlots = () => {
     const startHour = 8;
     const endHour = 22;
@@ -163,28 +165,33 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
     setIsScheduleModal(false);
   };
 
-
   const handleCheckOutBtn = () => {
-    if (selectedCarId == '') {
-      showMessage({
-        type: "danger",
-        message: t("pleaseSelectCar")
-      })
-      return
+    if (isHeader) {
+      if (selectedCarId == '') {
+        showMessage({
+          type: "danger",
+          message: t("pleaseSelectCar")
+        })
+        return
+      }
     }
 
     if (selectedPayment == 2 || selectedPayment == 1) {
       openPaymentSheet()
     } else {
-      processOrder()
+      if (isHeader) {
+        processOrder()
+      } else {
+        processGiftOrder()
+      }
     }
   }
 
-
   const processOrder = async () => {
     setIsOrderLoader(true)
+    const payMethod = selectedPayment == 1 ? "apple_pay" : selectedPayment == 2 ? 'card' :'wallet'
     try {
-      const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId,subTotal)
+      const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId, subTotal,userData?.phoneNo,payMethod)
       if (response?.success) {
         navigation.navigate('SuccessfulScreen')
         dispatch(clearCart())
@@ -200,7 +207,27 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
       setIsOrderLoader(false)
     }
   }
-
+ 
+ const processGiftOrder = async () => {
+    setIsOrderLoader(true)
+    try {
+      const response = await makeGiftOrder(giftCartData,token)
+      console.log('responsare',response)
+      if (response?.success) {
+        navigation.navigate('SuccessfulScreen')
+        dispatch(clearCart())
+      }
+      console.log('response', response)
+    } catch (error) {
+      console.log('dasdasdeee333', error)
+      showMessage({
+        type: "danger",
+        message: error?.errors
+      })
+    } finally {
+      setIsOrderLoader(false)
+    }
+  }
 
   const openPaymentSheet = async () => {
     if (!loading) {
@@ -252,9 +279,12 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
       )}
 
 
+      {isHeader  &&
+      
       <View style={{ marginHorizontal: -20, borderTopWidth: 1, borderBottomWidth: 1, paddingTop: 20, paddingBottom: 15, marginTop: 10, borderColor: colors.gray9 }}>
         <AddBrandedCar setSelectedCarId={setSelectedCarId} selectedCarId={selectedCarId} />
       </View>
+      }
 
       <HeaderWithAll title={t('payWith')} style={{ marginTop: 25 }} />
       <View style={styles.paymentList}>
@@ -287,7 +317,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
       </View>
 
       <HeaderWithAll title={t('paymentSummary')} />
-      <KeyValue leftValue={t('Subtotal')} rightValue={subTotal} />
+      <KeyValue leftValue={t('Subtotal')} rightValue={isHeader ? subTotal : giftCartData?.price} />
       <KeyValue
         leftValue={t('ServiceFee')}
         rightValue={'0.00'}
@@ -296,7 +326,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
       <KeyValue
         boldData={true}
         leftValue={t('TotalAmount')}
-        rightValue={subTotal}
+        rightValue={isHeader ? subTotal : giftCartData?.price}
         style={{ marginTop: 10 }}
       />
       <TouchableOpacity style={styles.readFeesBtn}>

@@ -31,6 +31,7 @@ import { fetchProductDetails, fetchSuggestedMsgs } from '../userServices/UserSer
 import { useDispatch } from 'react-redux';
 import { addProductToCart } from '../redux/ProductAddToCart';
 import ScreenLoader from '../components/ScreenLoader';
+import { addGiftProductToCart } from '../redux/GiftData';
 
 const ProductDetail = ({ route }) => {
   const { t } = useTranslation();
@@ -147,6 +148,30 @@ const ProductDetail = ({ route }) => {
     navigation.navigate('BasketScreen')
   }
 
+  const giftFun = () => {
+    const quantity = Number(counter)
+    const price = Number(productData?.price)
+    const data = {
+      id: productData?.id,
+      title: productData?.name,
+      description: productData?.description,
+      counter: quantity,
+      price: price,
+      image: `${mainUrl}${productData?.image}`,
+      extraItem: selectedExtras,
+      productNotes: addNote,
+      nameOnSticker: rcvrNameOnSticker,
+      msgForReceiver: msgForReceiver,
+      restaurantId: productData?.restaurant_id,
+      categoryId: productData?.category_id,
+    }
+    dispatch(addGiftProductToCart(data))
+
+    navigation.navigate('GiftFilterScreen', {
+      thirdStepContinue: [1, 2],
+    })
+  }
+
   if (isLoader) {
     return (
       <ScreenLoader />
@@ -176,6 +201,7 @@ const ProductDetail = ({ route }) => {
             smallLogo={false}
             fullWidth={true}
             heart={true}
+            productData={productData}
           />
 
           <TouchableOpacity style={styles.shareButton}>
@@ -413,9 +439,7 @@ const ProductDetail = ({ route }) => {
             title={isGifterPage ? 'add' : 'add'}
             onPress={() => {
               isGifterPage
-                ? navigation.navigate('GiftFilterScreen', {
-                  thirdStepContinue: [1, 2],
-                })
+                ? giftFun()
                 : addToCart();
             }}
             style={{ width: '55%' }}

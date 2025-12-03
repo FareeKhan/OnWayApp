@@ -23,69 +23,97 @@ import GiftImage from '../components/GiftImage';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { useNavigation } from '@react-navigation/native';
-import { fetchReceivedGifts, fetchSentGifts } from '../userServices/UserService';
+import { fetchReceivedGifts, fetchSendGifts, fetchSentGifts, removeGiftData } from '../userServices/UserService';
 import { useSelector } from 'react-redux';
+import { showMessage } from 'react-native-flash-message';
+import ScreenLoader from '../components/ScreenLoader';
+import ButtonLoader from '../components/ButtonLoader';
 
 const { height } = Dimensions.get('screen');
 
 const GiftScreen = () => {
   const navigation = useNavigation()
-  const token = useSelector((state)=>state.auth.loginData?.token)
+  const token = useSelector((state) => state.auth.loginData?.token)
   const { t } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState('sendGift');
-  const [isShowDetails, setIsShowDetails] = useState(false);
+  const [isShowDetails, setIsShowDetails] = useState(null);
   const [isReceiverSender, setIsReceiverSender] = useState();
   const [isShowSenderDetail, setIsShowSenderDetail] = useState(false);
-
-
+  const [sendGiftData, setSendGiftData] = useState([]);
+  const [deleteLoader, setDeleteLoader] = useState(false);
 
 
   useEffect(() => {
-    getGifts()
+    getSentGifts()
   }, [])
 
-  const getGifts = async () => {
-    try {
-
-      const [sentGiftReponse, receivedGiftReponse] = await Promise.all([fetchSentGifts(token), fetchReceivedGifts(token)])
-      if (sentGiftReponse?.success) {
-         
-      }
-
-      if (receivedGiftReponse?.success) {
-
-      }
-
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  //  const getSentGifts = async () => {
+  // const getGifts = async () => {
   //   try {
-  //     const result = await fetchSentGifts();
-  //     if (result?.success) {
-  //       setCategoriesArray(result?.data)
+
+  //     const [sentGiftReponse, receivedGiftReponse] = await Promise.all([fetchSentGifts(token), fetchReceivedGifts(token)])
+  //     if (sentGiftReponse?.success) {
+
   //     }
+
+  //     if (receivedGiftReponse?.success) {
+
+  //     }
+
   //   } catch (e) {
   //     console.log(e);
   //   }
   // };
+  console.log('tokentoken',token)
+
+  const getSentGifts = async () => {
+    try {
+      const result = await fetchSendGifts(token);
+      if (result?.success) {
+        setSendGiftData(result?.data?.data)
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  const deleteGift = async (id) => {
+    setDeleteLoader(true)
+    try {
+      const result = await removeGiftData(id,token);
+      if (result?.success) {
+        getSentGifts()
+        showMessage({
+          type: "success",
+          message: t('GiftDeleted')
+        })
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setDeleteLoader(false)
+    }
+  };
 
 
-
+console.log('sendGiftDatasendGiftData',sendGiftData)
   const RenderSendGiftsData = () => {
-    return SentGiftsData?.map((item, index) => {
+
+if(sendGiftData?.length == 0){
+  return(
+    <EmptyData title={t('NoGiftFound')}/>
+  )
+}
+    
+    return sendGiftData?.map((item, index) => {
       return (
         <View style={styles.cardWrapper} key={index}>
           <View style={styles.cardHeader}>
             <View>
               <CustomText style={styles.productName}>
-                {item?.ProductName}
+                {item?.gift_item}
               </CustomText>
-              <CustomText style={styles.productPrice}>
+              {/* <CustomText style={styles.productPrice}>
                 {currency} {item?.price}
-              </CustomText>
+              </CustomText> */}
             </View>
             <Image
               source={item?.productImage}
@@ -95,14 +123,14 @@ const GiftScreen = () => {
           </View>
 
           <View>
-            {isShowDetails ? (
+            {isShowDetails == index ? (
               <GiftImage
-                handleHidePress={() => setIsShowDetails(false)}
+                handleHidePress={() => setIsShowDetails(null)}
                 setIsShowDetails={setIsShowDetails}
                 imagePath={require('../assets/giftMSg.png')}
-                label={'Have a good day'}
+                label={item?.gift_message}
                 style={styles.giftImageMargin}
-                senderName={'Muhammad'}
+                senderName={item?.recipient_name}
               />
             ) : (
               <>
@@ -110,7 +138,7 @@ const GiftScreen = () => {
                   setIsShowDetails={setIsShowDetails}
                 />
                 <CustomButton
-                  onPress={() => setIsShowDetails(!isShowDetails)}
+                  onPress={() => setIsShowDetails(index)}
                   title={t('showDetails')}
                   style={[styles.detailsButton]}
                   btnTxtStyle={styles.detailsButtonText}
@@ -119,17 +147,27 @@ const GiftScreen = () => {
             )}
           </View>
 
-          {!isShowDetails && (
+          {isShowDetails !== index && (
             <>
-              <TouchableOpacity>
-                <CustomText style={styles.deleteText}>
-                  {t('deleteFromHistory')}
-                </CustomText>
-              </TouchableOpacity>
+              {
+                deleteLoader ?
+                  <ScreenLoader type={1} />
+                  :
+                  <TouchableOpacity onPress={() => deleteGift(item?.id)}>
+                    <CustomText style={styles.deleteText}>
+                      {t('deleteFromHistory')}
+                    </CustomText>
+                  </TouchableOpacity>
+
+
+              }
 
               <DividerLine />
             </>
           )}
+
+
+          <View style={{ marginVertical: 20 }} />
         </View>
       );
     });

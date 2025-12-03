@@ -1,7 +1,8 @@
 // export const mainUrl = 'https://onway.loca.lt/';
 // export const mainUrl = 'https://71a6865316cc.ngrok-free.app/';
 // export const mainUrl = 'https://onway.loca.lt/';
-export const mainUrl = 'http://192.168.70.67:8000/';
+export const mainUrl = 'https://backend.onway.ae/';
+export const ImageBaseUrl = 'https://backend.onway.ae';
 export const baseUrl = `${mainUrl}api/`;
 export const imageUrl = `${mainUrl}uploads/`;
 export const SP_KEY =

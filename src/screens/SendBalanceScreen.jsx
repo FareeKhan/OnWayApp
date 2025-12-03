@@ -12,26 +12,80 @@ import CustomText from '../components/CustomText';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import PaymentOptions from '../components/PaymentOptions';
+import { sendBalance } from '../userServices/UserService';
+import { useSelector } from 'react-redux';
+import { showMessage } from 'react-native-flash-message';
+import { useNavigation } from '@react-navigation/native';
 
 const SendBalanceScreen = () => {
   const { t } = useTranslation();
-  const [selectedPayment, setSelectedPayment] = useState(3);
-    const [selectedBalace, setSelectedBalance] = useState('');
-  
+  const navigation = useNavigation()
+  const token = useSelector((state) => state?.auth?.loginData?.token)
+  const [selectedPayment, setSelectedPayment] = useState(2);
+  const [selectedBalace, setSelectedBalance] = useState('');
+  const [receiptNo, setReceiptNo] = useState('');
   const isAppleSelected = selectedPayment == 1;
+
+  const shareBalance = async () => {
+    if (selectedBalace == '') {
+      showMessage({
+        type: 'danger',
+        message: t('PleaseSelectBalance')
+      })
+      return
+    } else if (receiptNo == '') {
+      showMessage({
+        type: 'danger',
+        message: t('enterReceiptNo')
+      })
+      return
+    } else if (receiptNo?.length < 8) {
+      showMessage({
+        type: 'danger',
+        message: t('receiptNoIncorrect')
+      })
+      return
+    }
+
+    const data = {
+      balance: selectedBalace?.price,
+      phone: receiptNo,
+    }
+
+    try {
+      const result = await sendBalance(data, token)
+      console.log('resultresuldasast', result)
+      if (result?.success) {
+        // setWalletData(result?.data)
+        showMessage({
+          type: 'success',
+          message: t('balanceSend')
+        })
+        navigation.goBack()
+      } else {
+        showMessage({
+          type: 'danger',
+          message: t('receiptNotFound')
+        })
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
 
   return (
     <ScreenView scrollable={true}>
       <HeaderBox smallLogo={false} notification={false} search={false} />
-      <IconLabel label={'sendBalance'}/>
+      <IconLabel label={'sendBalance'} />
 
       {SendingBalance?.map((item, index) => {
         return (
-          <TouchableOpacity onPress={()=>setSelectedBalance(item?.id)} key={index} style={[styles.amountBox,selectedBalace == item?.id && {borderColor:colors.cream}]}>
+          <TouchableOpacity onPress={() => setSelectedBalance(item)} key={index} style={[styles.amountBox, selectedBalace?.id == item?.id && { borderColor: colors.cream }]}>
             <CustomText style={styles.amountText}>
-             {currency} {item?.price}
+              {currency} {item?.price}
             </CustomText>
-           <Image source={require('../assets/cash.png')}  style={{width:80,height:65,transform:[{rotate:"-90deg"}]}}/>
+            <Image source={require('../assets/cash.png')} style={{ width: 80, height: 65, transform: [{ rotate: "-90deg" }] }} />
           </TouchableOpacity>
         );
       })}
@@ -48,6 +102,21 @@ const SendBalanceScreen = () => {
         filter={false}
       />
 
+
+
+      <HeaderWithAll
+        title={t('ReceiptNo')}
+        titleStyle={styles.orAmountTitle}
+      />
+      <CustomInput
+        placeholder={t('ReceiptNo')}
+        rs={true}
+        style={styles.customInput}
+        filter={false}
+        value={receiptNo}
+        onChangeText={setReceiptNo}
+      />
+
       <HeaderWithAll title={t('payWith')} />
       <PaymentOptions
         selectedPayment={selectedPayment}
@@ -59,6 +128,7 @@ const SendBalanceScreen = () => {
         title={isAppleSelected ? t('Pay') : t('payment')}
         btnTxtStyle={[styles.buttonText, isAppleSelected && styles.appleButtonText]}
         style={isAppleSelected && styles.appleButton}
+        onPress={() => shareBalance()}
       />
     </ScreenView>
   );
@@ -76,7 +146,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 10,
     borderColor: colors.black,
-    backgroundColor:colors.secondary,
+    backgroundColor: colors.secondary,
   },
   amountText: {
     fontSize: 16,
@@ -92,8 +162,8 @@ const styles = StyleSheet.create({
   },
   customInput: {
     marginTop: -10,
-    width:"100%",
-    backgroundColor:"#fff"
+    width: "100%",
+    backgroundColor: "#fff"
   },
   buttonText: {
     fontSize: 16,

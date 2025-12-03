@@ -6,6 +6,7 @@ import { thunk } from 'redux-thunk';
 import AddFavorite from './AddFavorite'
 import ProductAddToCart from './ProductAddToCart';
 import  storeCar  from './storeAddedCar';
+import GiftData  from './GiftData';
 
 const persistConfig = {
   key: "root",
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   favorite: AddFavorite,
   cart: ProductAddToCart,
   carArray: storeCar,
+  giftInfo: GiftData,
 })
 
 // Persisted reducer

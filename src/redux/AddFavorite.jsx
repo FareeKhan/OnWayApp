@@ -7,7 +7,6 @@ export const AddFavorite = createSlice({
     },
     reducers: {
         productFavorite: (state, action) => {
-            console.log('showmeData',action.payload)
             state.AddInFavorite.push(action.payload)
         },
         removeFavorite: (state, action) => {

@@ -37,6 +37,24 @@ import { showMessage } from 'react-native-flash-message';
 
 const { height, width } = Dimensions.get('screen');
 
+  const IconMenu = ({ onpress, icon, label, red }) => {
+  const { t } = useTranslation();
+
+    return (
+      <TouchableOpacity
+        style={styles.iconMenu}
+        onPress={onpress}
+        activeOpacity={0.7}
+      >
+        {icon}
+        <CustomText style={[red ? styles.redText : null]}>
+          {t(label)}
+        </CustomText>
+      </TouchableOpacity>
+    );
+  };
+
+
 const AccountSetting = () => {
   const isLanguage = useSelector(state => state.auth?.isLanguage);
   // const carData = useSelector(state => state.carArray?.saveCar);
@@ -100,14 +118,15 @@ const AccountSetting = () => {
     }
   }
 
-  const IconMenu = ({ onpress, icon, label, red }) => {
-    return (
-      <TouchableOpacity style={styles.iconMenu} onPress={onpress}>
-        {icon}
-        <CustomText style={red && styles.redText}>{t(label)}</CustomText>
-      </TouchableOpacity>
-    );
-  };
+  // const IconMenu = ({ onpress, icon, label, red }) => {
+  //   return (
+  //     <TouchableOpacity style={styles.iconMenu} onPress={onpress}>
+  //       {icon}
+  //       <CustomText style={red && styles.redText}>{t(label)}</CustomText>
+  //     </TouchableOpacity>
+  //   );
+  // };
+
 
   const handleCarSelection = item => {
     setSelectedCar(item);

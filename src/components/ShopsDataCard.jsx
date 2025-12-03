@@ -23,11 +23,7 @@ const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
 
   const renderItem = ({ item, index }) => {
     const remoteImage = item?.logo ? `${mainUrl}${item?.logo}` : `${mainUrl}${item?.image}`
-    console.log('remoteImageremoteImage', remoteImage)
     const defaultImage = require('../assets/shopName.png')
-
-
-
 
     return (
       <TouchableOpacity

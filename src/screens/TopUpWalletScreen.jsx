@@ -12,12 +12,50 @@ import CustomText from '../components/CustomText';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import PaymentOptions from '../components/PaymentOptions';
+import { useSelector } from 'react-redux';
+import { topUpBalanceApi } from '../userServices/UserService';
+import { showMessage } from 'react-native-flash-message';
+import { useNavigation } from '@react-navigation/native';
 
 const TopUpWalletScreen = () => {
   const { t } = useTranslation();
-  const [selectedPayment, setSelectedPayment] = useState(3);
+  const navigation = useNavigation()
+  const [selectedPayment, setSelectedPayment] = useState(2);
   const [selectedBalace, setSelectedBalance] = useState('');
+  const [isLoader, setIsLoader] = useState(false);
   const isAppleSelected = selectedPayment == 1;
+  const token = useSelector((state) => state?.auth?.loginData?.token)
+
+  const AddBalance = async () => {
+    if (selectedBalace == '') {
+      showMessage({
+        type: "danger",
+        message: t("PleaseSelectBalance")
+      })
+      return
+    }
+    try {
+      setIsLoader(true)
+      const paymentMethod = selectedPayment == 1 ? 'apple_pay' : "card"
+      const data = {
+        'amount': selectedBalace?.price,
+        'payment_method': paymentMethod
+      }
+      const result = await topUpBalanceApi(data, token)
+      if (result?.success) {
+        showMessage({
+          type: "success",
+          message: `${result?.data?.transaction?.amount} added to your account`
+        })
+      }
+      navigation.goBack()
+    } catch (error) {
+      console.log('error', error)
+    } finally {
+      setIsLoader(false)
+    }
+  }
+
 
   return (
     <ScreenView scrollable={true}>
@@ -31,7 +69,7 @@ const TopUpWalletScreen = () => {
 
       {topUpBalance?.map((item, index) => {
         return (
-          <TouchableOpacity onPress={()=>setSelectedBalance(item?.id)} key={index} style={[styles.amountBox,selectedBalace == item?.id && {borderColor:colors.cream}]}>
+          <TouchableOpacity onPress={() => setSelectedBalance(item)} key={index} style={[styles.amountBox, selectedBalace?.id == item?.id && { borderColor: colors.cream }]}>
             <CustomText style={styles.amountText}>
               {item?.price} {currency}
             </CustomText>
@@ -65,6 +103,8 @@ const TopUpWalletScreen = () => {
         title={isAppleSelected ? t('Pay') : t('payment')}
         btnTxtStyle={[styles.buttonText, isAppleSelected && styles.appleButtonText]}
         style={isAppleSelected && styles.appleButton}
+        onPress={() => AddBalance()}
+        loader={isLoader}
       />
     </ScreenView>
   );
@@ -102,10 +142,10 @@ const styles = StyleSheet.create({
   },
   customInput: {
     marginTop: -10,
-    backgroundColor:colors.white,
-    borderColor:'#000',
-    width:"100%",
-    borderWidth:1
+    backgroundColor: colors.white,
+    borderColor: '#000',
+    width: "100%",
+    borderWidth: 1
   },
   buttonText: {
     fontSize: 16,

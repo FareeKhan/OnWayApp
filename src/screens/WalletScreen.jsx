@@ -1,5 +1,5 @@
 import { I18nManager, Image, StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import CustomText from '../components/CustomText';
 import HeaderBox from '../components/HeaderBox';
@@ -9,15 +9,40 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useTranslation } from 'react-i18next';
 import IconLabel from '../components/IconLabel';
-import { currency } from '../constants/data';
+import { currency, topUpBalance } from '../constants/data';
 import { fonts } from '../constants/fonts';
 import DividerLine from '../components/DividerLine';
 import Subtitle from '../components/Subtitle';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { getWalletBalance } from '../userServices/UserService';
+import ScreenLoader from '../components/ScreenLoader';
 
 const WalletScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
+  const token = useSelector((state) => state?.auth?.loginData?.token)
+  const [walletData, setWalletData] = useState()
+  const [isLoader, setIsLoader] = useState(false)
+  useFocusEffect(
+    useCallback(() => {
+      fetchWalletData();
+    }, [])
+  );
+
+  const fetchWalletData = async () => {
+    try {
+      setIsLoader(true)
+      const result = await getWalletBalance(token)
+      if (result?.success) {
+        setWalletData(result?.data)
+      }
+    } catch (error) {
+      console.log('error', error)
+    } finally {
+      setIsLoader(false)
+    }
+  }
 
   const WalletBalanceCard = () => {
     const PackagesName = ({ title }) => {
@@ -51,15 +76,15 @@ const WalletScreen = () => {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom:15
+            marginBottom: 15
           }}
         >
           <CustomText style={styles.walletBalanceText}>
-            {t('walletBalance')}: 
+            {t('walletBalance')}:
           </CustomText>
           <View style={styles.walletAmountContainer}>
             <CustomText style={styles.walletAmountValue}> {currency}</CustomText>
-            <CustomText style={styles.walletAmountValue}>50.00</CustomText>
+            <CustomText style={styles.walletAmountValue}>{walletData?.balance}</CustomText>
           </View>
         </View>
 
@@ -70,6 +95,13 @@ const WalletScreen = () => {
       </View>
     );
   };
+
+
+  if (isLoader) {
+    return (
+      <ScreenLoader />
+    )
+  }
 
   return (
     <ScreenView scrollable={true}>
@@ -157,11 +189,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 5,
-    marginLeft:12
+    marginLeft: 12
   },
   walletBalanceText: {
     color: colors.primary,
-    fontSize:13
+    fontSize: 13
   },
   walletAmountContainer: {
     flexDirection: 'row',

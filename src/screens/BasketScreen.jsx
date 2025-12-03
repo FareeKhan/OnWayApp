@@ -27,6 +27,7 @@ import CartProducts from '../components/CartProducts';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { addProductToCart } from '../redux/ProductAddToCart';
+import { showMessage } from 'react-native-flash-message';
 
 const BasketScreen = () => {
   const { t } = useTranslation();
@@ -36,8 +37,8 @@ const BasketScreen = () => {
   const subTotal = cartData?.reduce((sum, item) => sum + (item?.price * item?.counter || 0), 0)
 
   const handleCheckout = () => {
-    navigation.navigate('CheckoutScreen',{
-      driverNote:driverNote
+    navigation.navigate('CheckoutScreen', {
+      driverNote: driverNote
     })
   }
 
@@ -72,7 +73,14 @@ const BasketScreen = () => {
             placeholderTextColor={colors.gray1}
             style={styles.voucherInput}
           />
-          <Subtitle style={styles.submitText}>{t('submit')}</Subtitle>
+          <TouchableOpacity onPress={() => {
+            showMessage({
+              type: "danger",
+              message: t('invalidCode')
+            })
+          }}>
+            <Subtitle style={styles.submitText}>{t('submit')}</Subtitle>
+          </TouchableOpacity>
         </View>
 
         <DividerLine style={styles.dividerBottom} h={true} />

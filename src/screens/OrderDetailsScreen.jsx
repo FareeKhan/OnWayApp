@@ -95,11 +95,12 @@ const OrderDetailsScreen = ({ route }) => {
           }
         </CustomText>
       </View>
+      {console.log('itemitem',item)}
 
       <View style={styles.totalAmountContainer}>
         <CustomText>{t('driverInstruction')}</CustomText>
         <CustomText style={styles.amountText}>
-       {item?.total}
+       {item?.special_instructions}
         </CustomText>
       </View>
 

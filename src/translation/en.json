@@ -167,6 +167,18 @@
     "noDataFound" :"No Product Found",
     "driverInstruction" :"Driver Instruction",
     "invalid" :"Invalid Number",
-
-
+        "PleaseAddContact" :"Please Add Contact",
+  "GiftDeleted" :"Gift Deleted successfully",
+  "NoGiftFound" :"No Gift Found",
+  "PleaseSelectBalance" :"Please Select balance or Enter manually",
+    "ReceiptNo" :"Receipt Number",
+    "enterReceiptNo" :"Please Enter Receipt Number",
+     "receiptNoIncorrect" :"Please Enter Correct Number",
+          "balanceSend" :"Balance Send Successfully",
+           "receiptNotFound" :"Recipient not found",
+            "noTransactionFound" :"No Transaction Found",
+                "ReceiptName" :"Receipt Name",
+                    "enterReceiptName" :"Please Enter Receipt Name",
+                       "invalidCode" :"Invalid Code",
 }
+

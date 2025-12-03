@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ScreenView from '../components/ScreenView';
-import { differentTheme, giftFilters, namesData } from '../constants/data';
+import { differentTheme, giftFilters, mainUrl, namesData } from '../constants/data';
 import HeaderBox from '../components/HeaderBox';
 import { useTranslation } from 'react-i18next';
 import CustomText from '../components/CustomText';
@@ -48,8 +48,11 @@ import Pay1 from '../assets/svg/pay1.svg';
 import Pay2 from '../assets/svg/pay2.svg';
 import ContactPickerScreen from './ContactPickerScreen';
 import ContactPickerModal from '../components/ContactPickerModal';
-import { fetchRestaurentList } from '../userServices/UserService';
+import { fetchRestaurentList, fetchTheme } from '../userServices/UserService';
 import { showMessage } from 'react-native-flash-message';
+import { useDispatch, useSelector } from 'react-redux';
+import { addGiftProductToCart } from '../redux/GiftData';
+import FastImage from 'react-native-fast-image';
 
 
 
@@ -74,7 +77,6 @@ const SelectedReceiver = ({
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-
     >
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -119,7 +121,8 @@ const SelectedReceiver = ({
             {selectedContacts?.map((item, index) => {
               if (!item.color) item.color = getRandomColor();
 
-              const fullName =item?.givenName + (item?.familyName != undefined &&item?.familyName);
+
+              const fullName = item?.givenName + ' ' + (item?.familyName || '');
 
               return (
                 <View style={styles.nameItem} key={item.recordID || index}>
@@ -147,7 +150,6 @@ const SelectedReceiver = ({
                       <AntDesign name="minus" size={15} style={styles.minusIcon} color={colors.white} />
                     </TouchableOpacity>
                   </View>
-               & 
                   <CustomText style={styles.nameText}>{fullName}</CustomText>
                 </View>
               );
@@ -251,7 +253,13 @@ const SelectedReceiver = ({
 
 const GiftFilterScreen = ({ route }) => {
   const { t } = useTranslation();
+  const dispatch = useDispatch()
   const giftData = giftFilters(t);
+  const resID = useSelector((state) => state?.giftInfo?.giftProduct?.item?.restaurant_id)
+  const giftCart = useSelector((state) => state?.giftInfo?.giftProduct)
+  console.log('dasdasdasd', resID)
+
+  console.log('showmeData', resID)
   const { thirdStepContinue } = route?.params || '';
 
   const [selectedFilter, setSelectedFilter] = useState(
@@ -264,9 +272,11 @@ const GiftFilterScreen = ({ route }) => {
   const [isSelectedShop, setIsSelectedShop] = useState(false);
   const [selectThemeCard, setSelectThemeCard] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState([]);
+  const [allThemes, setAllThemes] = useState([]);
   const [allRestaurants, setAllRestaurants] = useState([]);
   const [selectedShop, setSelectedShop] = useState('');
   const [manualNumber, setManualNumber] = useState('');
+  const [cardName, setCardName] = useState('');
 
 
   useEffect(() => {
@@ -277,7 +287,6 @@ const GiftFilterScreen = ({ route }) => {
   const restaurentData = async () => {
     try {
       const result = await fetchRestaurentList()
-      console.log('dasdasd', result?.data)
       if (result?.success) {
         setAllRestaurants(result?.data?.data)
       }
@@ -286,6 +295,17 @@ const GiftFilterScreen = ({ route }) => {
     }
   }
 
+  const themeArray = async (id) => {
+    try {
+      const result = await fetchTheme(id)
+      console.log('showMeAllThemesdasdasd', result?.data)
+      if (result?.success) {
+        setAllThemes(result?.data?.themes)
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
   const handleFilterBox = clickedId => {
     const selectedIds = giftData
@@ -344,14 +364,18 @@ const GiftFilterScreen = ({ route }) => {
     );
   };
 
-
+  const handleThemeContinueBtn = () => {
+    setSelectThemeCard(true)
+    dispatch(addGiftProductToCart({ selectedTheme }))
+  }
 
   const SelectCard = () => {
     return (
       <View>
         <HeaderWithAll title={t('selectTheme')} style={{ marginTop: 30 }} />
         <FlatList
-          data={differentTheme}
+          // data={differentTheme}
+          data={allThemes}
           keyExtractor={(item, index) => index?.toString()}
           numColumns={2}
           columnWrapperStyle={{ justifyContent: 'space-between' }}
@@ -364,7 +388,7 @@ const GiftFilterScreen = ({ route }) => {
         <View style={{ flex: 1, justifyContent: 'flex-end', bottom: 50 }}>
           <CustomButton
             title={t('continue')}
-            onPress={() => setSelectThemeCard(true)}
+            onPress={() => handleThemeContinueBtn()}
           />
         </View>
       </View>
@@ -372,9 +396,10 @@ const GiftFilterScreen = ({ route }) => {
   };
 
   const renderItem = ({ item, index }) => {
+    const cleanUrl = `${mainUrl.replace(/\/+$/, '')}/${item?.image.replace(/^\/+/, '')}`;
     return (
       <TouchableOpacity
-        onPress={() => setSelectedTheme(item?.id)}
+        onPress={() => setSelectedTheme(item)}
         key={index}
         style={{
           backgroundColor: colors.white,
@@ -385,11 +410,21 @@ const GiftFilterScreen = ({ route }) => {
           borderColor: colors.primary,
         }}
       >
-        <View
+        {/* <View
           style={{
             width: '100%',
             height: 155,
             backgroundColor: colors.primary2,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+          }}
+        /> */}
+        <FastImage
+          source={{ uri: cleanUrl }}
+          style={{
+            width: '100%',
+            height: 155,
+            // backgroundColor: colors.primary2,
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
           }}
@@ -406,7 +441,7 @@ const GiftFilterScreen = ({ route }) => {
           {item?.name}
         </CustomText>
 
-        {selectedTheme == item?.id && (
+        {selectedTheme?.id == item?.id && (
           <View style={{ position: 'absolute', right: 10, top: 10 }}>
             <MaterialIcons
               name={'check-box'}
@@ -418,6 +453,12 @@ const GiftFilterScreen = ({ route }) => {
       </TouchableOpacity>
     );
   };
+
+  const handleRestaurent = (item) => {
+    setSelectedShop(item?.restaurant_id), setIsSelectedShop(true)
+    dispatch(addGiftProductToCart({ item }))
+
+  }
 
   const lastStep =
     selectedFilter.length > 0
@@ -444,7 +485,7 @@ const GiftFilterScreen = ({ route }) => {
           {isSelectedShop ? (
             <View style={{ marginTop: 15 }}>
               <ShopDetail
-                title={t('The Coffee Merchant')}
+                // title={t('The Coffee Merchant')}
                 isHeader={false}
                 isGifterPage={true}
                 hideArrow={true}
@@ -458,7 +499,7 @@ const GiftFilterScreen = ({ route }) => {
               </Subtitle>
               <ShopsDataCard
                 data={allRestaurants}
-                onPress={(item) => { setSelectedShop(item?.restaurant_id), setIsSelectedShop(true) }}
+                onPress={(item) => handleRestaurent(item)}
               />
             </>
           )}
@@ -487,7 +528,18 @@ const GiftFilterScreen = ({ route }) => {
           >
             <CustomButton
               title={t('continueTheme')}
-              onPress={() => setSelectedFilter([1, 2, 3])}
+              onPress={() => {
+                if (selectedContacts?.length == 0) {
+                  showMessage({
+                    type: "danger",
+                    message: t('PleaseAddContact')
+                  })
+                  return
+                }
+                dispatch(addGiftProductToCart({ selectedContacts }))
+                themeArray(resID)
+                setSelectedFilter([1, 2, 3])
+              }}
             />
           </View>
         </>
@@ -545,7 +597,7 @@ const GiftFilterScreen = ({ route }) => {
               </CustomText> */}
 
               <CustomInput
-                placeholder={t('yourName')}
+                placeholder={t('ReceiptName')}
                 filter={false}
                 style={{
                   width: '100%',
@@ -554,9 +606,11 @@ const GiftFilterScreen = ({ route }) => {
                   borderWidth: 1,
                   borderColor: 'black',
                 }}
+                name={cardName}
+                onChangeText={setCardName}
               />
 
-
+                
               <CustomInput
                 placeholder={'haveAGoodDay'}
                 filter={false}
@@ -576,7 +630,7 @@ const GiftFilterScreen = ({ route }) => {
                 }}
               />
 
-              <CustomText style={{ fontFamily: fonts.semiBold }}>OR</CustomText>
+              {/* <CustomText style={{ fontFamily: fonts.semiBold }}>OR</CustomText>
 
               <TouchableOpacity
                 onPress={() => setModalVisible(true)}
@@ -595,11 +649,21 @@ const GiftFilterScreen = ({ route }) => {
                 <Subtitle style={{ fontSize: 14 }}>
                   {t('selectAmessage')}
                 </Subtitle>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
 
               <CustomButton
                 title={t('continuePayment')}
-                onPress={() => setSelectedFilter([1, 2, 3, 4])}
+                onPress={() => {
+                  if(cardName == ''){
+                    showMessage({
+                      type:"warning",
+                      message:t('enterReceiptName')
+                    })
+                    return
+                  }
+                  dispatch(addGiftProductToCart({ cardName, selectedMsg }))
+                  setSelectedFilter([1, 2, 3, 4])
+                }}
               />
             </View>
           ) : (
@@ -610,7 +674,7 @@ const GiftFilterScreen = ({ route }) => {
 
       {lastStep == 4 && (
         <View style={{ marginHorizontal: -20 }}>
-          <CartProducts data={[1, 2]} />
+          <CartProducts data={[giftCart]} />
 
           <Image
             source={require('../assets/giftCard.png')}

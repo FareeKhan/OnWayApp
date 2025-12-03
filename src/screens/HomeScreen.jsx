@@ -16,7 +16,7 @@ import CustomCarousel from '../components/CustomCarousel';
 import ShopsDataCard from '../components/ShopsDataCard';
 import CustomButton from '../components/CustomButton';
 import MapView from 'react-native-maps';
-import { catData, imageUrl, shopsData } from '../constants/data';
+import { catData, imageUrl, mainUrl, shopsData } from '../constants/data';
 import CustomText from '../components/CustomText';
 import Subtitle from '../components/Subtitle';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -175,13 +175,17 @@ const HomeScreen = () => {
   };
 
   const renderItem = ({ item }) => {
+    console.log('364723gasdvabsndasd',item)
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate('ShopDetail')}
+        onPress={() =>  navigation.navigate('ShopDetail', {
+          id: item?.restaurant_id ? item?.restaurant_id : item?.id,
+        })}
         style={styles.shopCardWrapper}
+        activeOpacity={0.8}
       >
         <Image
-          source={item?.imgPath}
+          source={{uri:`${mainUrl}${item?.cover_image}`}}
           style={styles.shopImage}
           borderTopLeftRadius={10}
           borderTopRightRadius={10}
@@ -190,14 +194,14 @@ const HomeScreen = () => {
         <View style={styles.shopInfoContainer}>
           <View style={styles.shopLogoWrapper}>
             <Image
-              source={item?.imgPath}
+              source={{uri:`${mainUrl}${item?.logo}`}}
               style={styles.shopLogo}
               borderRadius={50}
             />
           </View>
 
           <CustomText style={styles.shopName}>{item?.name}</CustomText>
-          <Subtitle>{item?.address}</Subtitle>
+          <Subtitle>{item?.location}</Subtitle>
 
           <View style={styles.servicesRow}>
             <View style={styles.serviceItem}>
@@ -239,7 +243,10 @@ const HomeScreen = () => {
 
         <View style={styles.mapListOverlay}>
           <FlatList
-            data={shopsData}
+            // data={shopsData}
+
+     data={restaurantsByCategory?.restaurants}
+            
             keyExtractor={(_, index) => index?.toString()}
             renderItem={renderItem}
             contentContainerStyle={styles.horizontalList}
@@ -338,7 +345,7 @@ const styles = StyleSheet.create({
 
   searchInput: { marginTop: 40, borderColor: colors.gray5 },
 
-  shopCardWrapper: { gap: 3 },
+  shopCardWrapper: {  },
 
   shopImage: { width: width / 2, height: 160 },
 

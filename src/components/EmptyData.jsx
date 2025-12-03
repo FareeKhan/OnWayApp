@@ -7,11 +7,11 @@ import { colors } from '../constants/colors'
 import { useNavigation } from '@react-navigation/native'
 const { height } = Dimensions.get('screen')
 
-const EmptyData = ({ title, emptyCart ,style}) => {
+const EmptyData = ({ title, emptyCart ,isHeight=true,style}) => {
     const { t } = useTranslation()
     // const navigation = useNavigation()
     return (
-        <View style={[styles.container,style]}>
+        <View style={[isHeight && styles.container,style]}>
 
             {
                 emptyCart ?

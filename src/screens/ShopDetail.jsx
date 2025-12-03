@@ -25,6 +25,8 @@ const ShopDetail = ({ isHeader = true, isGifterPage, hideArrow, route, selectedS
   const { t } = useTranslation()
   const resId = id || selectedShopId
 
+  console.log('dasdasdasdasdasuydia8s7d',resId)
+
 
   const [selectedDrink, setSelectedDrink] = useState('');
   const [showList, setShowList] = useState(false);
@@ -52,7 +54,6 @@ const ShopDetail = ({ isHeader = true, isGifterPage, hideArrow, route, selectedS
       setIsLoader(false)
     }
   }
-  console.log('outSide', selectedDrink)
 
   const formate12Hours = (timeSlot) => {
     if (!timeSlot) return

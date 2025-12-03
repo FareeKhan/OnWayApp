@@ -29,7 +29,6 @@ const ProductListing = ({ isGifterPage, data }) => {
             {item?.description}
           </Subtitle>
         </View>
-        {console.log('asdasdasdasdasdasdasd', `${mainUrl}${item?.image}`)}
         <RemoteImage
           uri={`${mainUrl}${item?.image}`}
           style={{ width: 115, height: 100, }}
@@ -46,7 +45,7 @@ const ProductListing = ({ isGifterPage, data }) => {
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item, index) => index?.toString()}
         contentContainerStyle={{ gap: 15, }}
-        ListEmptyComponent={<EmptyData title={t('noDataFound')} />}
+        ListEmptyComponent={<EmptyData isHeight={false} title={t('noDataFound')} />}
         renderItem={renderItem}
         scrollEnabled={false}
       />

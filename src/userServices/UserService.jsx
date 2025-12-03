@@ -1,5 +1,5 @@
 import axios from "axios";
-import { baseUrl } from "../constants/data";
+import { baseUrl, ImageBaseUrl, mainUrl } from "../constants/data";
 
 
 export const loginPhoneNo = async (phoneNo) => {
@@ -186,6 +186,24 @@ export const fetchRestaurentList = async (id) => {
     }
 };
 
+export const fetchTheme = async (id) => {
+    console.log('--->dasdasd>>', id)
+    try {
+        const response = await axios.get(
+            `${baseUrl}restaurants/${id}/gift-themes`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+};
+
 
 
 // export const makeOrder = async (data, token) => {
@@ -225,8 +243,7 @@ export const fetchRestaurentList = async (id) => {
 
 // ***************** ORDER APIS
 
-export const makeOrder = async (data, resID, token, driverNote, selectedCarId, subTotal) => {
-    console.log('datadata', driverNote);
+export const makeOrder = async (data, resID, token, driverNote, selectedCarId, subTotal, phoneNo, payMethod) => {
 
     const array = data?.map((item, index) => ({
         ...item,
@@ -240,14 +257,13 @@ export const makeOrder = async (data, resID, token, driverNote, selectedCarId, s
         vehicle_id: selectedCarId,
         order_type: "standard",
         items: array,
-        payment_type: "card",
+        payment_type: payMethod || "card",
         subtotal: subTotal || 0,
         delivery_fee: 0,
         service_fee: 2,
         total: subTotal || 0,
-        special_instructions: driverNote,
-        customer_phone: "+1234567890",
-        special_instructions: "consequatur",
+        special_instructions: driverNote || 'No Instruction',
+        customer_phone: phoneNo || "+1234567890",
         gift_from: "consequatur",
         gift_message: "consequatur",
         gift_theme: "consequatur"
@@ -269,6 +285,36 @@ export const makeOrder = async (data, resID, token, driverNote, selectedCarId, s
         console.log(e?.response?.data || e.message);
     }
 };
+
+
+// export const makeGiftOrder = async (data) => {
+
+//     const postData = {
+//         gift_item: data?.title,
+//         gift_message: 'forMyFrnd',
+//         gift_theme: "standard",
+//         recipient_name: 'nasdw',
+//         recipient_phone: "0554087444",
+//         recipient_address: 'kjhdasd',
+//     };
+//     try {
+//         const response = await axios.post(
+//             `${baseUrl}orders`,
+//             postData,
+//             {
+//                 headers: {
+//                     Accept: 'application/json',
+//                     'Content-Type': 'application/json', // ✅ important
+//                 },
+//             }
+//         );
+//         return response.data;
+//     } catch (e) {
+//         console.log(e?.response?.data || e.message);
+//     }
+// };
+
+
 
 export const fetchOrder = async (token) => {
     try {
@@ -416,3 +462,168 @@ export const deleteVehicles = async (id, token) => {
         console.log(e?.response?.data || e.message);
     }
 };
+
+// ++++++
+export const makeGiftOrder = async (data, token) => {
+    const themeImage = ImageBaseUrl + data?.selectedTheme?.image
+    // Create FormData
+     const value =
+  data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number
+  ?? data?.selectedContacts?.[0]?.givenName
+  ?? '';
+    const formData = new FormData();
+    formData.append('gift_item', data?.title);
+    formData.append('gift_message', data?.selectedMsg);
+    formData.append('gift_theme', themeImage);
+    formData.append('recipient_name', data?.cardName || 'no Name');
+    formData.append('recipient_phone',data?.selectedContacts?.[0]?.phoneNumbers? data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number 
+    : String(data?.selectedContacts?.[0]?.givenName)
+    || '0556090234');
+    formData.append('recipient_address', 'kjhdasd');
+
+    // Example for adding an image/file (if needed)
+    // formData.append('gift_image', data?.imageFile);
+
+    try {
+        const response = await axios.post(
+            `${baseUrl}gifts`,
+            formData,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+};
+
+
+
+
+export const fetchSendGifts = async (token) => {
+    try {
+        const response = await axios.get(
+            `${baseUrl}gifts/sent`,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+};
+
+
+export const removeGiftData = async (id, token) => {
+    try {
+        const response = await axios.delete(
+            `${baseUrl}gifts/${id}`,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+};
+
+
+// -------------------- Wallet APIS
+
+export const getWalletBalance = async (token) => {
+    try {
+        const response = await axios.get(
+            `${baseUrl}wallet/balance`,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+};
+
+
+
+export const topUpBalanceApi = async (data, token) => {
+    try {
+        const response = await axios.post(
+            `${baseUrl}wallet/top-up`,
+            data,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+}
+
+
+
+export const sendBalance = async (data, token) => {
+    const postData = {
+        "recipient_phone": Number(data?.phone),
+        "amount": data?.balance,
+    }
+    console.log('postDatapostData', postData)
+    try {
+        const response = await axios.post(
+            `${baseUrl}wallet/send-balance`,
+            postData,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+}
+
+
+
+export const walletTransaction = async (token) => {
+    try {
+        const response = await axios.get(
+            `${baseUrl}wallet/transactions`,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+}
+
+

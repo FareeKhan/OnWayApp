@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { memo, useState } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 
 import CustomText from './CustomText';
@@ -22,12 +22,35 @@ import CustomModal from './CustomModal';
 import DividerLine from './DividerLine';
 import RNRestart from 'react-native-restart';
 import { language } from '../redux/Auth';
+import { productFavorite, removeFavorite } from '../redux/AddFavorite';
 
-const HeaderBox = ({ style, onPressBack, onlyLogo, smallLogo = true,fullWidth,heart,title,innerStyle }) => {
+const HeaderBox = ({ style, productData, onPressBack, onlyLogo, smallLogo = true, fullWidth, heart, title, innerStyle }) => {
   const { t } = useTranslation();
-const [isHeart,setIsHeart] = useState(false)
+  const [isHeart, setIsHeart] = useState(false)
+  const favoriteData = useSelector((state) => state?.favorite?.AddInFavorite)
   const navigation = useNavigation();
 
+  const dispatch = useDispatch();
+
+  const isCheckData = favoriteData?.some((state) => state?.id == productData?.id)
+
+
+  const handleFavorite = useCallback(() => {
+    if (isCheckData) {
+      dispatch(removeFavorite({ id: productData?.id }))
+    } else {
+      dispatch(productFavorite({
+        id: productData?.id,
+        image: productData?.image,
+        price: productData?.price,
+        title: productData?.name,
+        description: productData?.description,
+        restID: productData?.restaurant_id
+      }))
+    }
+
+  },[isCheckData, productData])
+  // onPress={()=>setIsHeart(!isHeart)}
   return (
     <View style={style}>
       {onlyLogo ? (
@@ -39,7 +62,7 @@ const [isHeart,setIsHeart] = useState(false)
           />
         </View>
       ) : (
-        <View style={[styles.container,fullWidth && {width:"100%"},innerStyle]}>
+        <View style={[styles.container, fullWidth && { width: "100%" }, innerStyle]}>
           <TouchableOpacity
             onPress={onPressBack ? onPressBack : () => navigation.goBack()}
           >
@@ -67,18 +90,18 @@ const [isHeart,setIsHeart] = useState(false)
             </View>
           )}
 
-             {title && (
+          {title && (
             <View>
-             <CustomText style={{fontFamily:fonts.semiBold,fontSize:15}}>{title}</CustomText>
+              <CustomText style={{ fontFamily: fonts.semiBold, fontSize: 15 }}>{title}</CustomText>
             </View>
           )}
 
-         {
-          heart && 
-           <TouchableOpacity activeOpacity={0.5} onPress={()=>setIsHeart(!isHeart)} style={{backgroundColor:"#fff",width:30,height:30,alignItems:"center",justifyContent:"center",borderRadius:50}}>
-            <FontAwesome name={isHeart ? 'heart' :'heart-o' } size={18} color={isHeart ? colors.red:colors.black}/>
-          </TouchableOpacity>
-         }
+          {
+            heart &&
+            <TouchableOpacity onPress={() => handleFavorite()} activeOpacity={0.5} style={{ backgroundColor: "#fff", width: 30, height: 30, alignItems: "center", justifyContent: "center", borderRadius: 50 }}>
+              <FontAwesome name={isCheckData ? 'heart' : 'heart-o'} size={18} color={isCheckData ? colors.red : colors.black} />
+            </TouchableOpacity>
+          }
         </View>
       )}
     </View>
