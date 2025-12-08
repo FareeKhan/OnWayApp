@@ -1,6 +1,9 @@
-import { Platform } from "react-native"
+import { Alert, Platform } from "react-native"
 import { request, PERMISSIONS } from 'react-native-permissions';
 import { GOOGLE_API } from "./data";
+import { getPaymentIntentApi } from "../userServices/UserService";
+import { initPaymentSheet, presentPaymentSheet } from "@stripe/stripe-react-native";
+import { showMessage } from "react-native-flash-message";
 
 export const locationPermission = async () => {
     try {
@@ -30,3 +33,50 @@ export const getAddressFromCoordinates = async (longitude, latitude) => {
         console.log('error', error)
     }
 }
+
+
+
+export const initializePaymentSheet = async (price,setLoading) => {
+    const paymentIntent = await getPaymentIntentApi(price);
+    console.log('showmeIntializeBalance',paymentIntent)
+
+    if (!paymentIntent) {
+      console.error("Failed to get payment intent");
+      Alert.alert("Error", "Unable to initialize payment.");
+      return;
+    }
+
+    const { error } = await initPaymentSheet({
+      paymentIntentClientSecret: paymentIntent,
+      merchantDisplayName: "OnWay"
+    });
+
+    if (!error) {
+    //   setLoading(true);
+    } else {
+      console.error("PaymentSheet Initialization Error:", error);
+      Alert.alert("Error", error.message);
+    }
+  };
+
+
+  export const openPaymentSheet = async (loading,processOrder) => {
+    //   if (!loading) {
+    //     Alert.alert("Error", "Payment sheet not initialized.");
+    //     return;
+    //   }
+  
+      const { error } = await presentPaymentSheet();
+  
+      if (error) {
+        showMessage({
+          type: "danger",
+          message: error.message
+        })
+      } else {
+        // Alert.alert("Payment Success", "Your payment is confirmed!");
+        // Call MakeOrder API to confirm order after successful payment
+        // onPressCash();
+        processOrder()
+      }
+    };

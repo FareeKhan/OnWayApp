@@ -23,7 +23,7 @@ import GiftImage from '../components/GiftImage';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { useNavigation } from '@react-navigation/native';
-import { fetchReceivedGifts, fetchSendGifts, fetchSentGifts, removeGiftData } from '../userServices/UserService';
+import { fetchReceivedGifts, fetchSendGifts, fetchSentGifts, giftRcvd, removeGiftData } from '../userServices/UserService';
 import { useSelector } from 'react-redux';
 import { showMessage } from 'react-native-flash-message';
 import ScreenLoader from '../components/ScreenLoader';
@@ -45,6 +45,7 @@ const GiftScreen = () => {
 
   useEffect(() => {
     getSentGifts()
+    rcvdGift()
   }, [])
 
   // const getGifts = async () => {
@@ -94,7 +95,26 @@ const GiftScreen = () => {
   };
 
 
-console.log('sendGiftDatasendGiftData',sendGiftData)
+    const rcvdGift = async () => {
+    // setDeleteLoader(true)
+    try {
+      const result = await giftRcvd(token);
+      console.log('resultresult',result)
+      // if (result?.success) {
+      //   getSentGifts()
+      //   showMessage({
+      //     type: "success",
+      //     message: t('GiftDeleted')
+      //   })
+      // }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setDeleteLoader(false)
+    }
+  };
+
+
   const RenderSendGiftsData = () => {
 
 if(sendGiftData?.length == 0){
@@ -308,9 +328,6 @@ if(sendGiftData?.length == 0){
   };
 
 
-
-
-
   return (
     <ScreenView scrollable={true}>
       <HeaderBox logo={true} />
@@ -334,7 +351,6 @@ if(sendGiftData?.length == 0){
       ) : (
         <RenderReceivedGiftsData />
       )}
-
 
 
       {/* { (

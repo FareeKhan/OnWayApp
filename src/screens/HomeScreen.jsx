@@ -100,7 +100,7 @@ const HomeScreen = () => {
           numColumns={2}
           columnWrapperStyle={{ justifyContent: "space-between", }}
           contentContainerStyle={{ gap: 20, marginVertical: 20 }}
-          ListEmptyComponent={<EmptyData/>}
+          ListEmptyComponent={<EmptyData />}
           renderItem={({ item, index }) => {
             const remotePath = `${imageUrl}${item?.image}`
             return (
@@ -175,17 +175,16 @@ const HomeScreen = () => {
   };
 
   const renderItem = ({ item }) => {
-    console.log('364723gasdvabsndasd',item)
     return (
       <TouchableOpacity
-        onPress={() =>  navigation.navigate('ShopDetail', {
+        onPress={() => navigation.navigate('ShopDetail', {
           id: item?.restaurant_id ? item?.restaurant_id : item?.id,
         })}
         style={styles.shopCardWrapper}
         activeOpacity={0.8}
       >
         <Image
-          source={{uri:`${mainUrl}${item?.cover_image}`}}
+          source={{ uri: `${mainUrl}${item?.cover_image}` }}
           style={styles.shopImage}
           borderTopLeftRadius={10}
           borderTopRightRadius={10}
@@ -194,14 +193,17 @@ const HomeScreen = () => {
         <View style={styles.shopInfoContainer}>
           <View style={styles.shopLogoWrapper}>
             <Image
-              source={{uri:`${mainUrl}${item?.logo}`}}
+              source={{ uri: `${mainUrl}${item?.logo}` }}
               style={styles.shopLogo}
               borderRadius={50}
             />
           </View>
 
           <CustomText style={styles.shopName}>{item?.name}</CustomText>
-          <Subtitle>{item?.location}</Subtitle>
+          <Subtitle style={{
+    textTransform:"capitalize"
+
+          }}>{[...new Set(item?.location?.split(/\r?\n/).map(s => s.trim()))].join(", ")}</Subtitle>
 
           <View style={styles.servicesRow}>
             <View style={styles.serviceItem}>
@@ -245,8 +247,7 @@ const HomeScreen = () => {
           <FlatList
             // data={shopsData}
 
-     data={restaurantsByCategory?.restaurants}
-            
+            data={restaurantsByCategory?.restaurants}
             keyExtractor={(_, index) => index?.toString()}
             renderItem={renderItem}
             contentContainerStyle={styles.horizontalList}
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
 
   searchInput: { marginTop: 40, borderColor: colors.gray5 },
 
-  shopCardWrapper: {  },
+  shopCardWrapper: {},
 
   shopImage: { width: width / 2, height: 160 },
 
@@ -376,6 +377,7 @@ const styles = StyleSheet.create({
   shopName: {
     fontFamily: fonts.bold,
     color: colors.primary,
+    textTransform:"capitalize"
   },
   servicesRow: {
     flexDirection: 'row',

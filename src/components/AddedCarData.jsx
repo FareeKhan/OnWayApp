@@ -33,7 +33,7 @@ const AddedCarData = ({ isBorder, carData, setSelectedCarId, selectedCarId,loadA
           type: "success",
           message: t('vehicleDeleted')
         })
-        loadAddedVechicle(false)
+        loadAddedVechicle()
       }
     } catch (error) {
     }

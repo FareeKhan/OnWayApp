@@ -539,6 +539,24 @@ export const removeGiftData = async (id, token) => {
     }
 };
 
+export const giftRcvd = async (token) => {
+    try {
+        const response = await axios.get(
+            `${baseUrl}gifts/received`,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+};
+
+
 
 // -------------------- Wallet APIS
 

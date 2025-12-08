@@ -1,5 +1,5 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderWithAll from '../components/HeaderWithAll';
 import { fonts } from '../constants/fonts';
@@ -16,15 +16,28 @@ import { useSelector } from 'react-redux';
 import { topUpBalanceApi } from '../userServices/UserService';
 import { showMessage } from 'react-native-flash-message';
 import { useNavigation } from '@react-navigation/native';
+import { initializePaymentSheet, openPaymentSheet } from '../constants/helper';
 
 const TopUpWalletScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation()
   const [selectedPayment, setSelectedPayment] = useState(2);
   const [selectedBalace, setSelectedBalance] = useState('');
+  const [otherAmount, setOtherAmount] = useState('');
   const [isLoader, setIsLoader] = useState(false);
   const isAppleSelected = selectedPayment == 1;
   const token = useSelector((state) => state?.auth?.loginData?.token)
+
+
+  const amount =
+    otherAmount?.length > 0
+      ? Number(otherAmount)
+      : Number(selectedBalace?.price || 0);
+  useEffect(() => {
+    if (amount > 0) {
+      initializePaymentSheet(amount, setIsLoader);
+    }
+  }, [amount]);
 
   const AddBalance = async () => {
     if (selectedBalace == '') {
@@ -38,7 +51,7 @@ const TopUpWalletScreen = () => {
       setIsLoader(true)
       const paymentMethod = selectedPayment == 1 ? 'apple_pay' : "card"
       const data = {
-        'amount': selectedBalace?.price,
+        'amount': selectedBalace?.price || otherAmount,
         'payment_method': paymentMethod
       }
       const result = await topUpBalanceApi(data, token)
@@ -56,6 +69,12 @@ const TopUpWalletScreen = () => {
     }
   }
 
+  const handleSelection = (item) => {
+    if (item?.id) {
+      setOtherAmount('')
+      setSelectedBalance(item)
+    }
+  }
 
   return (
     <ScreenView scrollable={true}>
@@ -69,7 +88,7 @@ const TopUpWalletScreen = () => {
 
       {topUpBalance?.map((item, index) => {
         return (
-          <TouchableOpacity onPress={() => setSelectedBalance(item)} key={index} style={[styles.amountBox, selectedBalace?.id == item?.id && { borderColor: colors.cream }]}>
+          <TouchableOpacity onPress={() => handleSelection(item)} key={index} style={[styles.amountBox, selectedBalace?.id == item?.id && { borderColor: colors.cream }]}>
             <CustomText style={styles.amountText}>
               {item?.price} {currency}
             </CustomText>
@@ -90,6 +109,16 @@ const TopUpWalletScreen = () => {
         rs={true}
         style={styles.customInput}
         filter={false}
+        value={otherAmount}
+        onChangeText={(text) => {
+          const numericValue = text.replace(/[^0-9.]/g, '');
+
+          if (numericValue.length > 0) {
+            setOtherAmount(numericValue);
+            setSelectedBalance(null);
+          }
+
+        }}
       />
 
       <HeaderWithAll title={t('payWith')} />
@@ -103,7 +132,9 @@ const TopUpWalletScreen = () => {
         title={isAppleSelected ? t('Pay') : t('payment')}
         btnTxtStyle={[styles.buttonText, isAppleSelected && styles.appleButtonText]}
         style={isAppleSelected && styles.appleButton}
-        onPress={() => AddBalance()}
+        // onPress={() => AddBalance()}
+        onPress={() => openPaymentSheet(isLoader, AddBalance)}
+
         loader={isLoader}
       />
     </ScreenView>

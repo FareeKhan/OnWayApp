@@ -17,6 +17,7 @@ import FastImage from 'react-native-fast-image';
 
 const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
   const navigation = useNavigation();
+  console.log('datadatadata',data)
 
   const [useFallback, setUseFallback] = useState(false);
 
@@ -35,7 +36,7 @@ const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
         <View style={{ backgroundColor: 'red', borderRadius: 50, overflow: "hidden", borderWidth: 1, borderColor: colors.gray6 }}>
           <FastImage
             style={{ width: 70, height: 70 }}
-            source={useFallback ? defaultImage : {
+            source={{
               uri: remoteImage,
               priority: FastImage.priority.normal,
             }}
@@ -49,8 +50,10 @@ const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
             {item?.description}
           </CustomText>
 
-          <CustomText style={{ fontSize: 12, color: colors.gray1 }}>
-            3KM
+          <CustomText style={{ fontSize: 12, color: colors.gray1 ,textTransform:"capitalize"}}>
+            {/* 3KM */}
+              {[...new Set(item?.location?.split(/\r?\n/).map(s => s.trim()))].join(", ")}
+            {/* {item?.location} */}
           </CustomText>
 
           <CustomText

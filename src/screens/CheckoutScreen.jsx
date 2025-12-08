@@ -23,6 +23,7 @@ import AddBrandedCar from '../components/AddBrandedCar';
 import { showMessage } from 'react-native-flash-message';
 import { clearCart } from '../redux/ProductAddToCart';
 import { useStripe } from '@stripe/stripe-react-native';
+import { initializePaymentSheet, openPaymentSheet } from '../constants/helper';
 
 
 
@@ -31,10 +32,10 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   const dispatch = useDispatch()
   const cartData = useSelector((state) => state?.cart?.cartProducts)
   const token = useSelector((state) => state?.auth?.loginData?.token)
-    const userData = useSelector((state) => state?.auth?.loginData)
+  const userData = useSelector((state) => state?.auth?.loginData)
   const giftCartData = useSelector((state) => state?.giftInfo?.giftProduct)
 
-console.log('---->>>s',giftCartData)
+  console.log('---->>>s', giftCartData)
   const resID = useSelector((state) => state?.cart?.restaurentID)
   const { driverNote } = route?.params || ''
 
@@ -53,38 +54,38 @@ console.log('---->>>s',giftCartData)
 
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
-  const getPaymentIntent = async () => {
-    try {
-      const response = await getPaymentIntentApi(subTotal ||giftCartData?.price );
-      console.log('PaymentIntent API Response ===>', response);
-      return response;
-    } catch (error) {
-      console.log("Error fetching payment intent:", error);
-      return null;
-    }
-  };
+  // const getPaymentIntent = async () => {
+  //   try {
+  //     const response = await getPaymentIntentApi(subTotal ||giftCartData?.price );
+  //     console.log('PaymentIntent API Response ===>', response);
+  //     return response;
+  //   } catch (error) {
+  //     console.log("Error fetching payment intent:", error);
+  //     return null;
+  //   }
+  // };
 
-  const initializePaymentSheet = async () => {
-    const paymentIntent = await getPaymentIntent();
+  // const initializePaymentSheet = async () => {
+  //   const paymentIntent = await getPaymentIntent();
 
-    if (!paymentIntent) {
-      console.error("Failed to get payment intent");
-      Alert.alert("Error", "Unable to initialize payment.");
-      return;
-    }
+  //   if (!paymentIntent) {
+  //     console.error("Failed to get payment intent");
+  //     Alert.alert("Error", "Unable to initialize payment.");
+  //     return;
+  //   }
 
-    const { error } = await initPaymentSheet({
-      paymentIntentClientSecret: paymentIntent,
-      merchantDisplayName: "CarsIt"
-    });
+  //   const { error } = await initPaymentSheet({
+  //     paymentIntentClientSecret: paymentIntent,
+  //     merchantDisplayName: "OnWay"
+  //   });
 
-    if (!error) {
-      setLoading(true);
-    } else {
-      console.error("PaymentSheet Initialization Error:", error);
-      Alert.alert("Error", error.message);
-    }
-  };
+  //   if (!error) {
+  //     setLoading(true);
+  //   } else {
+  //     console.error("PaymentSheet Initialization Error:", error);
+  //     Alert.alert("Error", error.message);
+  //   }
+  // };
 
   const TopImageAddress = () => {
     return (
@@ -137,8 +138,13 @@ console.log('---->>>s',giftCartData)
 
   useEffect(() => {
     getFutureTimeSlots();
-    initializePaymentSheet();
   }, []);
+
+  useEffect(() => {
+    if (subTotal > 0) {
+      initializePaymentSheet(subTotal || giftCartData?.price, setLoading);
+    }
+  }, [subTotal]);
 
   const getFutureTimeSlots = () => {
     const startHour = 8;
@@ -177,7 +183,7 @@ console.log('---->>>s',giftCartData)
     }
 
     if (selectedPayment == 2 || selectedPayment == 1) {
-      openPaymentSheet()
+      openPaymentSheet(loading, processOrder)
     } else {
       if (isHeader) {
         processOrder()
@@ -189,9 +195,9 @@ console.log('---->>>s',giftCartData)
 
   const processOrder = async () => {
     setIsOrderLoader(true)
-    const payMethod = selectedPayment == 1 ? "apple_pay" : selectedPayment == 2 ? 'card' :'wallet'
+    const payMethod = selectedPayment == 1 ? "apple_pay" : selectedPayment == 2 ? 'card' : 'wallet'
     try {
-      const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId, subTotal,userData?.phoneNo,payMethod)
+      const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId, subTotal, userData?.phoneNo, payMethod)
       if (response?.success) {
         navigation.navigate('SuccessfulScreen')
         dispatch(clearCart())
@@ -207,12 +213,12 @@ console.log('---->>>s',giftCartData)
       setIsOrderLoader(false)
     }
   }
- 
- const processGiftOrder = async () => {
+
+  const processGiftOrder = async () => {
     setIsOrderLoader(true)
     try {
-      const response = await makeGiftOrder(giftCartData,token)
-      console.log('responsare',response)
+      const response = await makeGiftOrder(giftCartData, token)
+      console.log('responsare', response)
       if (response?.success) {
         navigation.navigate('SuccessfulScreen')
         dispatch(clearCart())
@@ -229,26 +235,26 @@ console.log('---->>>s',giftCartData)
     }
   }
 
-  const openPaymentSheet = async () => {
-    if (!loading) {
-      Alert.alert("Error", "Payment sheet not initialized.");
-      return;
-    }
+  // const openPaymentSheet = async () => {
+  //   if (!loading) {
+  //     Alert.alert("Error", "Payment sheet not initialized.");
+  //     return;
+  //   }
 
-    const { error } = await presentPaymentSheet();
+  //   const { error } = await presentPaymentSheet();
 
-    if (error) {
-      showMessage({
-        type: "danger",
-        message: error.message
-      })
-    } else {
-      // Alert.alert("Payment Success", "Your payment is confirmed!");
-      // Call MakeOrder API to confirm order after successful payment
-      // onPressCash();
-      processOrder()
-    }
-  };
+  //   if (error) {
+  //     showMessage({
+  //       type: "danger",
+  //       message: error.message
+  //     })
+  //   } else {
+  //     // Alert.alert("Payment Success", "Your payment is confirmed!");
+  //     // Call MakeOrder API to confirm order after successful payment
+  //     // onPressCash();
+  //     processOrder()
+  //   }
+  // };
 
   const isAppleSelected = selectedPayment == 1;
 
@@ -279,11 +285,11 @@ console.log('---->>>s',giftCartData)
       )}
 
 
-      {isHeader  &&
-      
-      <View style={{ marginHorizontal: -20, borderTopWidth: 1, borderBottomWidth: 1, paddingTop: 20, paddingBottom: 15, marginTop: 10, borderColor: colors.gray9 }}>
-        <AddBrandedCar setSelectedCarId={setSelectedCarId} selectedCarId={selectedCarId} />
-      </View>
+      {isHeader &&
+
+        <View style={{ marginHorizontal: -20, borderTopWidth: 1, borderBottomWidth: 1, paddingTop: 20, paddingBottom: 15, marginTop: 10, borderColor: colors.gray9 }}>
+          <AddBrandedCar setSelectedCarId={setSelectedCarId} selectedCarId={selectedCarId} />
+        </View>
       }
 
       <HeaderWithAll title={t('payWith')} style={{ marginTop: 25 }} />

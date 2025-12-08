@@ -155,7 +155,7 @@ const ShopDetail = ({ isHeader = true, isGifterPage, hideArrow, route, selectedS
                     </Subtitle>
                     <Subtitle>Preparation time 15 mins</Subtitle>
                   </View>
-
+{console.log('singleRestaurentDatasingleRestaurentDatasingleRestaurentData',singleRestaurentData)}
                   <Ionicons
                     name={I18nManager.isRTL ? 'chevron-back-outline' : 'chevron-forward-outline'}
                     size={20}

@@ -8,7 +8,7 @@ import {
   TextInput,
   Image,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import CustomText from '../components/CustomText';
 import Subtitle from '../components/Subtitle';
@@ -24,7 +24,7 @@ import { useTranslation } from 'react-i18next';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
 import CustomModal from '../components/CustomModal';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { language, logout } from '../redux/Auth';
 import RNRestart from 'react-native-restart';
@@ -34,31 +34,35 @@ import { deleteCar, removeStoreCarData, storeCarData } from '../redux/storeAdded
 import AddedCarData from '../components/AddedCarData';
 import { addVehicle, fetchVehicles } from '../userServices/UserService';
 import { showMessage } from 'react-native-flash-message';
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 
 const { height, width } = Dimensions.get('screen');
 
-  const IconMenu = ({ onpress, icon, label, red }) => {
+const IconMenu = ({ onpress, icon, label, red }) => {
   const { t } = useTranslation();
 
-    return (
-      <TouchableOpacity
-        style={styles.iconMenu}
-        onPress={onpress}
-        activeOpacity={0.7}
-      >
-        {icon}
-        <CustomText style={[red ? styles.redText : null]}>
-          {t(label)}
-        </CustomText>
-      </TouchableOpacity>
-    );
-  };
+  return (
+    <TouchableOpacity
+      style={styles.iconMenu}
+      onPress={onpress}
+      activeOpacity={0.7}
+    >
+      {icon}
+      <CustomText style={[red ? styles.redText : null]}>
+        {t(label)}
+      </CustomText>
+    </TouchableOpacity>
+  );
+};
 
 
 const AccountSetting = () => {
   const isLanguage = useSelector(state => state.auth?.isLanguage);
   // const carData = useSelector(state => state.carArray?.saveCar);
   const token = useSelector((state) => state?.auth?.loginData?.token)
+  const userData = useSelector((state) => state?.auth?.loginData)
+  // console.log('userDatauserDatauserData',userData)
+
 
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -71,9 +75,12 @@ const AccountSetting = () => {
   const [searchCar, setSearchCar] = useState('');
   const [carData, setCarData] = useState([]);
 
-  useEffect(() => {
-    loadAddedVechicle()
-  }, [carData])
+  useFocusEffect(
+    useCallback(() => {
+      loadAddedVechicle();
+    }, [])
+  );
+
 
   const handleAddCar = async () => {
     const data = {
@@ -94,6 +101,7 @@ const AccountSetting = () => {
         setPlateNo('')
         setSelectedCar('')
         setIsAddNewCar(false);
+        loadAddedVechicle()
       } else {
         showMessage({
           type: "danger",
@@ -107,25 +115,27 @@ const AccountSetting = () => {
     }
   }
 
-  const loadAddedVechicle = async () => {
+  // const loadAddedVechicle = async () => {
+  //   try {
+  //     const response = await fetchVehicles(token)
+  //     if (response?.success) {
+  //       setCarData(response?.data)
+  //     }
+  //   } catch (error) {
+  //     console.log('Vehicle Error', error)
+  //   }
+  // }
+  const loadAddedVechicle = useCallback(async () => {
     try {
-      const response = await fetchVehicles(token)
+      const response = await fetchVehicles(token);
       if (response?.success) {
-        setCarData(response?.data)
+        setCarData(response.data);
       }
     } catch (error) {
-      console.log('Vehicle Error', error)
+      console.log('Vehicle Error', error);
     }
-  }
+  }, []); // no dependencies because token is constant
 
-  // const IconMenu = ({ onpress, icon, label, red }) => {
-  //   return (
-  //     <TouchableOpacity style={styles.iconMenu} onPress={onpress}>
-  //       {icon}
-  //       <CustomText style={red && styles.redText}>{t(label)}</CustomText>
-  //     </TouchableOpacity>
-  //   );
-  // };
 
 
   const handleCarSelection = item => {
@@ -157,12 +167,13 @@ const AccountSetting = () => {
       <View style={styles.headerRow}>
         <View style={styles.headerProfile}>
           <View style={styles.profileIcon}>
-            <CustomText style={styles.profileInitial}>H</CustomText>
+            {/* <CustomText style={styles.profileInitial}>H</CustomText> */}
+            <FontAwesome name={'user-o'} size={20} color={colors.black} />
           </View>
           <View>
-            <CustomText>Hamid</CustomText>
-            <Subtitle style={styles.subtitleSmall}>+966 50224467</Subtitle>
-            <Subtitle style={styles.subtitleSmall2}>Hamid@gmail.com</Subtitle>
+            {/* <CustomText>Hamid</CustomText> */}
+            <Subtitle style={styles.subtitleSmall}>{userData?.phoneNo}</Subtitle>
+            {/* <Subtitle style={styles.subtitleSmall2}>Hamid@gmail.com</Subtitle> */}
           </View>
         </View>
 
@@ -255,7 +266,12 @@ const AccountSetting = () => {
       {
         carData?.length > 0 ?
           <View style={{ paddingHorizontal: 20 }}>
-            <AddedCarData carData={carData} />
+            {/* <AddedCarData carData={carData} /> */}
+
+            <AddedCarData
+              carData={carData}
+              loadAddedVechicle={loadAddedVechicle}
+            />
           </View>
           :
           !isAddNewCar &&
