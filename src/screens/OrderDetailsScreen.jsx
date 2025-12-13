@@ -85,22 +85,30 @@ const OrderDetailsScreen = ({ route }) => {
         {t('paymentMethod')}
       </CustomText>
 
+
+
       <View style={styles.paymentRow}>
-        <Ionicons name={'cash-outline'} size={25} color={colors.gray} />
+        {
+          item?.payment_type == 'card' || item?.payment_type == 'apple_pay' ?
+            <Ionicons name={'card'} size={25} color={colors.gray} />
+
+            :
+            <Ionicons name={'cash-outline'} size={25} color={colors.gray} />
+
+        }
         <CustomText style={styles.paymentText}>
-          {/* {t('creditCard')} */}
           {item?.payment_type == 'card' ?
-            t('creditCard')
-            : t('wallet')
+            t('creditCard') :
+            item?.payment_type == 'apple_pay' ? t('applePay') : t('wallet')
           }
         </CustomText>
       </View>
-      {console.log('itemitem',item)}
+      {console.log('itemitem', item)}
 
       <View style={styles.totalAmountContainer}>
         <CustomText>{t('driverInstruction')}</CustomText>
         <CustomText style={styles.amountText}>
-       {item?.special_instructions}
+          {item?.special_instructions}
         </CustomText>
       </View>
 

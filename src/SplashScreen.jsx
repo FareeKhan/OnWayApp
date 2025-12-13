@@ -6,22 +6,15 @@ import { useSelector } from 'react-redux'
 
 const SplashScreen = () => {
   const navigation = useNavigation()
-  const userId = useSelector((state) => state?.auth?.loginData?.id)
 
-
-  
-  useEffect(() => {
+    useEffect(() => {
     const timer = setTimeout(() => {
-      if (userId) {
-        navigation.replace('BottomNavigation')
-      } else {
-        navigation.replace('LoginScreen');
-      }
+         navigation.replace('BottomNavigation')
     }, 1500);
+    
 
     return () => clearTimeout(timer);
-  }, [userId]);
-
+  }, []);
   return (
     <View style={styles.mainContainer}>
       <StatusBar barStyle={'dark-content'} />

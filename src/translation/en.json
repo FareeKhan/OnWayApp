@@ -180,5 +180,10 @@
                 "ReceiptName" :"Receipt Name",
                     "enterReceiptName" :"Please Enter Receipt Name",
                        "invalidCode" :"Invalid Code",
+                       "EnterPromo" :"Enter Promo Code",
+                       "promoNotFound" :"Promo Code not found",
+                       "CartISEmpty" :"Cart Is Empty",
+                       "PleaseLogin" :"Please sign in",
+                      "PleaseLoginFirst": "Please log in to continue with checkout"
 }
 

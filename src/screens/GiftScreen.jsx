@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderBox from '../components/HeaderBox';
 import CustomText from '../components/CustomText';
@@ -22,7 +22,7 @@ import DividerLine from '../components/DividerLine';
 import GiftImage from '../components/GiftImage';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { fetchReceivedGifts, fetchSendGifts, fetchSentGifts, giftRcvd, removeGiftData } from '../userServices/UserService';
 import { useSelector } from 'react-redux';
 import { showMessage } from 'react-native-flash-message';
@@ -43,28 +43,12 @@ const GiftScreen = () => {
   const [deleteLoader, setDeleteLoader] = useState(false);
 
 
-  useEffect(() => {
+
+  useFocusEffect(useCallback(() => {
     getSentGifts()
     rcvdGift()
-  }, [])
+  }, []))
 
-  // const getGifts = async () => {
-  //   try {
-
-  //     const [sentGiftReponse, receivedGiftReponse] = await Promise.all([fetchSentGifts(token), fetchReceivedGifts(token)])
-  //     if (sentGiftReponse?.success) {
-
-  //     }
-
-  //     if (receivedGiftReponse?.success) {
-
-  //     }
-
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // };
-  console.log('tokentoken',token)
 
   const getSentGifts = async () => {
     try {

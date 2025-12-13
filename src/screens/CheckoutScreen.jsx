@@ -33,6 +33,8 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   const cartData = useSelector((state) => state?.cart?.cartProducts)
   const token = useSelector((state) => state?.auth?.loginData?.token)
   const userData = useSelector((state) => state?.auth?.loginData)
+    const userId = useSelector((state) => state?.auth?.loginData?.id)
+  
   const giftCartData = useSelector((state) => state?.giftInfo?.giftProduct)
 
   console.log('---->>>s', giftCartData)
@@ -185,9 +187,11 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
     if (selectedPayment == 2 || selectedPayment == 1) {
       openPaymentSheet(loading, processOrder)
     } else {
+
       if (isHeader) {
         processOrder()
       } else {
+
         processGiftOrder()
       }
     }
@@ -198,6 +202,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
     const payMethod = selectedPayment == 1 ? "apple_pay" : selectedPayment == 2 ? 'card' : 'wallet'
     try {
       const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId, subTotal, userData?.phoneNo, payMethod)
+   console.log('dasdasd',response)
       if (response?.success) {
         navigation.navigate('SuccessfulScreen')
         dispatch(clearCart())
@@ -215,6 +220,13 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   }
 
   const processGiftOrder = async () => {
+        if (!userId) {
+          showMessage({
+            type: "danger",
+            message: t('PleaseLoginFirst')
+          })
+          return
+        }
     setIsOrderLoader(true)
     try {
       const response = await makeGiftOrder(giftCartData, token)

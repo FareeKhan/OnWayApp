@@ -465,20 +465,21 @@ export const deleteVehicles = async (id, token) => {
 
 // ++++++
 export const makeGiftOrder = async (data, token) => {
+    console.log('dasdasdas')
     const themeImage = ImageBaseUrl + data?.selectedTheme?.image
     // Create FormData
-     const value =
-  data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number
-  ?? data?.selectedContacts?.[0]?.givenName
-  ?? '';
+    const value =
+        data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number
+        ?? data?.selectedContacts?.[0]?.givenName
+        ?? '';
     const formData = new FormData();
     formData.append('gift_item', data?.title);
     formData.append('gift_message', data?.selectedMsg);
     formData.append('gift_theme', themeImage);
     formData.append('recipient_name', data?.cardName || 'no Name');
-    formData.append('recipient_phone',data?.selectedContacts?.[0]?.phoneNumbers? data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number 
-    : String(data?.selectedContacts?.[0]?.givenName)
-    || '0556090234');
+    formData.append('recipient_phone', data?.selectedContacts?.[0]?.phoneNumbers ? data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number
+        : String(data?.selectedContacts?.[0]?.givenName)
+        || '0556090234');
     formData.append('recipient_address', 'kjhdasd');
 
     // Example for adding an image/file (if needed)
@@ -644,4 +645,31 @@ export const walletTransaction = async (token) => {
     }
 }
 
+
+
+// Promo Code 
+export const postPromo = async (promoCode, restId, subTotal, userId) => {
+    promoCode, restId, subTotal, userId
+    const body = {
+        "restaurant_id": restId,
+        "code": promoCode,
+        "order_total": subTotal,
+        "user_id": userId
+    }
+    try {
+        const response = await axios.post(
+            `${baseUrl}promo-codes/validate`,
+            body,
+            {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+}
 

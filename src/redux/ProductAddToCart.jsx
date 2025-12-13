@@ -43,16 +43,20 @@ export const productAddToCart = createSlice({
             state.totalPrice = finalPrice
         },
         decrementCounter: (state, action) => {
-            const product = state.cartProducts.find((item) => item.id === action.payload);
-            if (product && product.counter > 1) {
+       const product = state.cartProducts.find((item) => item.id === action.payload);
+            if (product.counter == 1) {
+                state.cartProducts = state.cartProducts?.filter((item) => item?.id != product?.id)
+            } else {
                 product.counter -= 1;
             }
+
 
             const finalPrice = state.cartProducts.reduce((total, item) => {
                 return total + item.counter * parseFloat(item.price);
             }, 0)
                 .toFixed(2);
             state.totalPrice = finalPrice
+
 
         },
         handlePromo: (state, action) => {

@@ -17,11 +17,14 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { getWalletBalance } from '../userServices/UserService';
 import ScreenLoader from '../components/ScreenLoader';
+import EmptyData from '../components/EmptyData';
 
 const WalletScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const token = useSelector((state) => state?.auth?.loginData?.token)
+  const userId = useSelector((state) => state?.auth?.loginData?.id)
+
   const [walletData, setWalletData] = useState()
   const [isLoader, setIsLoader] = useState(false)
   useFocusEffect(
@@ -108,6 +111,19 @@ const WalletScreen = () => {
       <HeaderBox smallLogo={false} notification={false} search={false} />
       <IconLabel label={'rewards'} />
 
+
+
+      {
+                !userId ?
+          <EmptyData title={t('PleaseLogin')} />
+
+
+          :
+
+
+       <>
+  
+
       <WalletBalanceCard />
       <IconLabel
         label={'topUpWallet'}
@@ -157,6 +173,8 @@ const WalletScreen = () => {
       <Subtitle smallFont={true} style={styles.coffeeSub2}>
         Note: The Free coffe value will be as the minimum purchased value
       </Subtitle>
+           </>   
+      }
     </ScreenView>
   );
 };

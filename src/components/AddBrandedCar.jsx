@@ -17,10 +17,15 @@ import { storeCarData } from '../redux/storeAddedCar'
 import AddedCarData from './AddedCarData'
 import ScreenLoader from './ScreenLoader'
 import { useFocusEffect } from '@react-navigation/native'
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Entypo from 'react-native-vector-icons/Entypo';
+
+
+
 
 const { height } = Dimensions.get('screen')
 
-const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
+const AddBrandedCar = ({ setSelectedCarId, selectedCarId, style }) => {
     const { t } = useTranslation()
     const token = useSelector((state) => state?.auth?.loginData?.token)
 
@@ -42,6 +47,7 @@ const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
         setIsLoader(true)
         try {
             const response = await fetchVehicles(token)
+            console.log('dasdas', response)
             if (response?.success) {
                 setCarData(response?.data)
             }
@@ -64,6 +70,8 @@ const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
     };
 
     const handleAddCar = async () => {
+
+
         const data = {
             carCategory,
             carName: selectedCar?.name,
@@ -94,6 +102,8 @@ const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
 
         }
     }
+
+
     if (isLoader) {
         return (
             <ScreenLoader />
@@ -102,6 +112,24 @@ const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
 
     return (
         <View>
+            <View style={[{ flexDirection: "row", justifyContent: "space-between",  },style]}>
+                <View style={[styles.carsHeader,]}>
+                    <Ionicons name={'car-sport-outline'} size={25} color={colors.black} />
+                    <CustomText>{t('yourCars')}</CustomText>
+                </View>
+
+                <TouchableOpacity style={{ marginTop: 12 ,marginRight:5}} onPress={() => setIsAddNewCar(!isAddNewCar)}>
+                    <Ionicons name={'car-sport-outline'} size={25} color={colors.black} />
+                    <Entypo
+                        name={'plus'}
+                        size={12}
+                        color={colors.black}
+                        style={styles.plusIcon}
+                    />
+                </TouchableOpacity>
+            </View>
+
+
             {
                 carData?.length > 0 ?
                     <View style={{ paddingHorizontal: 20 }}>
@@ -109,7 +137,7 @@ const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
                     </View>
                     :
                     !isAddNewCar &&
-                    <View style={styles.noCarsContainer}>
+                    <View style={[styles.noCarsContainer,style]}>
                         <CustomText style={styles.noCarsText}>{t('noCars')}</CustomText>
 
                         <CustomButton
@@ -124,7 +152,7 @@ const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
 
             {
                 isAddNewCar &&
-                <View style={styles.addCarContainer}>
+                <View style={[styles.addCarContainer,style]}>
                     <View style={styles.addCarRow}>
                         <CustomText style={styles.vehicleBrand}>
                             {t('vehicleBrand')}
@@ -181,10 +209,6 @@ const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
 
 
 
-
-
-
-
             <CustomModal
                 modalVisible={isCarModal}
                 setModalVisible={setIsCarModal}
@@ -197,6 +221,7 @@ const AddBrandedCar = ({ setSelectedCarId, selectedCarId }) => {
                     rs={true}
                     value={searchCar}
                     onChangeText={setSearchCar}
+                    style={{ flexDirection: "row", alignItems: "center" }}
                 />
 
                 <FlatList
@@ -288,12 +313,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 13,
-        paddingTop: 15,
-        paddingHorizontal: 20,
+
     },
     addCarContainer: {
         paddingVertical: 15,
-        paddingHorizontal: 20,
     },
     addCarRow: {
         flexDirection: 'row',
@@ -376,7 +399,6 @@ const styles = StyleSheet.create({
     },
     noCarsContainer: {
         paddingVertical: 15,
-        paddingHorizontal: 20,
     },
     noCarsText: {
         marginVertical: 8,
