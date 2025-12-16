@@ -936,7 +936,7 @@ const AccountSetting = () => {
 
       }
 
-
+{/* 
       <IconMenu
         label={'termsCondition'}
         icon={<EvilIcons name={'calendar'} size={25} color={colors.black} />}
@@ -944,7 +944,7 @@ const AccountSetting = () => {
       <IconMenu
         label={'privacyPolicy'}
         icon={<EvilIcons name={'calendar'} size={25} color={colors.black} />}
-      />
+      /> */}
       <IconMenu
         onpress={handleTranslation}
         label={'switchLanguage'}
@@ -952,7 +952,7 @@ const AccountSetting = () => {
           <Ionicons name={'language-outline'} size={22} color={colors.black} />
         }
       />
-      <IconMenu
+      {/* <IconMenu
         label={'getHelp'}
         icon={<Feather name={'help-circle'} size={20} color={colors.black} />}
       />
@@ -971,7 +971,7 @@ const AccountSetting = () => {
         icon={
           <Ionicons name={'logo-instagram'} size={22} color={colors.black} />
         }
-      />
+      /> */}
       <IconMenu
         label={userId ? 'logout' :"login"}
         icon={<AntDesign name={userId ? 'logout' :"login"} size={22} color={colors.red} />}

@@ -38,20 +38,23 @@ export const GiftData = createSlice({
 
             // state.subTotalPrice = finalPrice
         },
-        incrementCounter: (state) => {
-            if (state.giftProduct) {
-                state.giftProduct.counter = (state.giftProduct.counter || 0) + 1;
-
-                const finalPrice = (state.giftProduct.counter * parseFloat(state.giftProduct.price || 0)).toFixed(2);
-                state.totalPrice = finalPrice;
-            }
+        incrementCounter: (state, action) => {
+            if (!state.giftProduct) return;
+                state.giftProduct.counter += 1;
+                state.totalPrice = (state.giftProduct.counter * parseFloat(state.giftProduct.price || 0)).toFixed(2);
         },
 
-        decrementCounter: (state) => {
-            if (state.giftProduct && state.giftProduct.counter > 1) {
+        decrementCounter: (state, action) => {
+ 
+
+            if (!state.giftProduct) return;
+
+            if (state.giftProduct.counter === 1) {
+                state.giftProduct = null; // remove product
+                state.totalPrice = '';
+            } else {
                 state.giftProduct.counter -= 1;
-                const finalPrice = (state.giftProduct.counter * parseFloat(state.giftProduct.price || 0)).toFixed(2);
-                state.totalPrice = finalPrice;
+                state.totalPrice = (state.giftProduct.counter * parseFloat(state.giftProduct.price || 0)).toFixed(2);
             }
         },
         handleTotalPrice: (state, action) => {
@@ -59,7 +62,7 @@ export const GiftData = createSlice({
             console.log('aminaaBegin', state.totalPrice)
         },
         clearCart: (state) => {
-            state.giftProduct = [];
+            state.giftProduct = null;
             state.totalPrice = '';
             state.isPromo = false
         }

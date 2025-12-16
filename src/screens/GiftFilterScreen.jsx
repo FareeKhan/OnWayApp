@@ -6,16 +6,15 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
-  ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {  useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
-import { differentTheme, giftFilters, mainUrl, namesData } from '../constants/data';
+import {giftFilters, mainUrl, namesData } from '../constants/data';
 import HeaderBox from '../components/HeaderBox';
 import { useTranslation } from 'react-i18next';
 import CustomText from '../components/CustomText';
@@ -35,7 +34,6 @@ import CustomInput from '../components/CustomInput';
 import SuggestedMsgsModal from '../components/SuggestedMsgsModal';
 import CheckoutScreen from './CheckoutScreen';
 import CartProducts from '../components/CartProducts';
-import Contacts from 'react-native-contacts';
 import User1 from '../assets/svg/user1.svg';
 import User2 from '../assets/svg/user2.svg';
 import Gift1 from '../assets/svg/gift1.svg';
@@ -46,13 +44,13 @@ import Theme2 from '../assets/svg/theme2.svg';
 
 import Pay1 from '../assets/svg/pay1.svg';
 import Pay2 from '../assets/svg/pay2.svg';
-import ContactPickerScreen from './ContactPickerScreen';
 import ContactPickerModal from '../components/ContactPickerModal';
 import { fetchRestaurentList, fetchTheme } from '../userServices/UserService';
 import { showMessage } from 'react-native-flash-message';
 import { useDispatch, useSelector } from 'react-redux';
 import { addGiftProductToCart } from '../redux/GiftData';
 import FastImage from 'react-native-fast-image';
+import { useNavigation } from '@react-navigation/native';
 
 
 
@@ -254,12 +252,11 @@ const SelectedReceiver = ({
 const GiftFilterScreen = ({ route }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch()
+  const navigation = useNavigation()
   const giftData = giftFilters(t);
   const resID = useSelector((state) => state?.giftInfo?.giftProduct?.item?.restaurant_id)
   const giftCart = useSelector((state) => state?.giftInfo?.giftProduct)
-  console.log('dasdasdasd', resID)
 
-  console.log('showmeData', resID)
   const { thirdStepContinue } = route?.params || '';
 
   const [selectedFilter, setSelectedFilter] = useState(
@@ -374,7 +371,6 @@ const GiftFilterScreen = ({ route }) => {
       <View>
         <HeaderWithAll title={t('selectTheme')} style={{ marginTop: 30 }} />
         <FlatList
-          // data={differentTheme}
           data={allThemes}
           keyExtractor={(item, index) => index?.toString()}
           numColumns={2}
@@ -610,7 +606,7 @@ const GiftFilterScreen = ({ route }) => {
                 onChangeText={setCardName}
               />
 
-                
+
               <CustomInput
                 placeholder={'haveAGoodDay'}
                 filter={false}
@@ -654,10 +650,10 @@ const GiftFilterScreen = ({ route }) => {
               <CustomButton
                 title={t('continuePayment')}
                 onPress={() => {
-                  if(cardName == ''){
+                  if (cardName == '') {
                     showMessage({
-                      type:"warning",
-                      message:t('enterReceiptName')
+                      type: "warning",
+                      message: t('enterReceiptName')
                     })
                     return
                   }
@@ -671,10 +667,11 @@ const GiftFilterScreen = ({ route }) => {
           )}
         </>
       )}
-
+      {console.log('giftCart', giftCart)}
       {lastStep == 4 && (
         <View style={{ marginHorizontal: -20 }}>
-          <CartProducts data={[giftCart]} />
+          {/* <CartProducts data={[giftCart !==null && giftCart]} isGift={true} /> */}
+          <CartProducts data={giftCart ? [giftCart] : []} isGift={true} />
 
           <Image
             source={require('../assets/giftCard.png')}

@@ -37,9 +37,9 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   
   const giftCartData = useSelector((state) => state?.giftInfo?.giftProduct)
 
-  console.log('---->>>s', giftCartData)
+
   const resID = useSelector((state) => state?.cart?.restaurentID)
-  const { driverNote } = route?.params || ''
+  const { driverNote,discount  } = route?.params || ''
 
   const navigation = useNavigation();
   const [selectedPayment, setSelectedPayment] = useState(3);
@@ -51,69 +51,9 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   const [isOrderLoader, setIsOrderLoader] = useState(false);
 
   const paymentData = paymentCards(t);
-
-  const subTotal = cartData?.reduce((sum, item) => sum + (item?.price * item?.counter || 0), 0)
-
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
-
-  // const getPaymentIntent = async () => {
-  //   try {
-  //     const response = await getPaymentIntentApi(subTotal ||giftCartData?.price );
-  //     console.log('PaymentIntent API Response ===>', response);
-  //     return response;
-  //   } catch (error) {
-  //     console.log("Error fetching payment intent:", error);
-  //     return null;
-  //   }
-  // };
-
-  // const initializePaymentSheet = async () => {
-  //   const paymentIntent = await getPaymentIntent();
-
-  //   if (!paymentIntent) {
-  //     console.error("Failed to get payment intent");
-  //     Alert.alert("Error", "Unable to initialize payment.");
-  //     return;
-  //   }
-
-  //   const { error } = await initPaymentSheet({
-  //     paymentIntentClientSecret: paymentIntent,
-  //     merchantDisplayName: "OnWay"
-  //   });
-
-  //   if (!error) {
-  //     setLoading(true);
-  //   } else {
-  //     console.error("PaymentSheet Initialization Error:", error);
-  //     Alert.alert("Error", error.message);
-  //   }
-  // };
-
-  const TopImageAddress = () => {
-    return (
-      <View style={styles.topImageAddressContainer}>
-        <View style={styles.topImageAddressHeader}>
-          <CustomText>
-            {t('from')} <CustomText style={styles.fromText}>Pakero</CustomText>
-          </CustomText>
-          <TouchableOpacity>
-            <Subtitle style={styles.detailsText}>{t('details')}</Subtitle>
-          </TouchableOpacity>
-        </View>
-        <Subtitle style={styles.addressSubtitle}>
-          Al Rigga, Green corner , 703, 7
-        </Subtitle>
-        <View style={styles.mobileRow}>
-          <Subtitle>{t('mobileNumber')}: +971123123123</Subtitle>
-          <View style={styles.ratingRow}>
-            <Entypo name={'star'} size={15} color={colors.black} />
-            <Subtitle>4.6+ {t('rating')}</Subtitle>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
+//  const finalPrice = subTotal || giftCartData?.price * giftCartData?.counter
+  const subTotal = cartData?.reduce((sum, item) => sum + (item?.price * item?.counter || 0), 0) - discount
+ const finalPrice = subTotal || giftCartData?.price * giftCartData?.counter
   const PickUpTimeBox = () => {
     return (
       <View style={styles.pickupContainer}>
@@ -143,10 +83,10 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   }, []);
 
   useEffect(() => {
-    if (subTotal > 0) {
-      initializePaymentSheet(subTotal || giftCartData?.price, setLoading);
+    if (finalPrice > 0) {
+      initializePaymentSheet(finalPrice, setLoading);
     }
-  }, [subTotal]);
+  }, [finalPrice]);
 
   const getFutureTimeSlots = () => {
     const startHour = 8;
@@ -201,7 +141,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
     setIsOrderLoader(true)
     const payMethod = selectedPayment == 1 ? "apple_pay" : selectedPayment == 2 ? 'card' : 'wallet'
     try {
-      const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId, subTotal, userData?.phoneNo, payMethod)
+      const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId, finalPrice, userData?.phoneNo, payMethod)
    console.log('dasdasd',response)
       if (response?.success) {
         navigation.navigate('SuccessfulScreen')
@@ -299,7 +239,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
 
       {isHeader &&
 
-        <View style={{ marginHorizontal: -20, borderTopWidth: 1, borderBottomWidth: 1, paddingTop: 20, paddingBottom: 15, marginTop: 10, borderColor: colors.gray9 }}>
+        <View style={{ borderTopWidth: 1, borderBottomWidth: 1, paddingTop: 20, paddingBottom: 15, marginTop: 10, borderColor: colors.gray9 }}>
           <AddBrandedCar setSelectedCarId={setSelectedCarId} selectedCarId={selectedCarId} />
         </View>
       }
@@ -335,7 +275,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
       </View>
 
       <HeaderWithAll title={t('paymentSummary')} />
-      <KeyValue leftValue={t('Subtotal')} rightValue={isHeader ? subTotal : giftCartData?.price} />
+      <KeyValue leftValue={t('Subtotal')} rightValue={finalPrice}/>
       <KeyValue
         leftValue={t('ServiceFee')}
         rightValue={'0.00'}
@@ -344,7 +284,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
       <KeyValue
         boldData={true}
         leftValue={t('TotalAmount')}
-        rightValue={isHeader ? subTotal : giftCartData?.price}
+        rightValue={finalPrice}
         style={{ marginTop: 10 }}
       />
       <TouchableOpacity style={styles.readFeesBtn}>

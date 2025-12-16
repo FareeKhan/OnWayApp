@@ -8,7 +8,7 @@ import { fonts } from '../constants/fonts';
 import { useSelector } from 'react-redux';
 import RemoteImage from './RemoteImage';
 
-const CartProducts = ({ data ,}) => {
+const CartProducts = ({ data ,isGift}) => {
 
   const cartData = useSelector((state) => state?.cart?.cartProducts)
 
@@ -28,7 +28,7 @@ const CartProducts = ({ data ,}) => {
               <CustomText style={{ fontFamily: fonts.semiBold }}>{item?.title}</CustomText>
               <View style={styles.priceRow}>
                 <CustomText>{currency} {item?.price}</CustomText>
-                <IncrementDecrement item={item} style={styles.incrementer} />
+                <IncrementDecrement isGift={isGift} item={item} style={styles.incrementer} />
               </View>
             </View>
             <RemoteImage

@@ -36,7 +36,7 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs access to your location even when running in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to your location while using the app.</string>
+	<string>Allow Onway to access your location while you are using the app to provide accurate delivery of products to your address. For example, we use your location to find the nearest delivery personel and update the delivery status in real-time while you use the app.</string>
 	<key>NSCameraUsageDescription</key>
 <string>This app uses the camera to take photos and scan items.</string>
 

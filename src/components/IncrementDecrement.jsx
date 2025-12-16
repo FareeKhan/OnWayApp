@@ -10,7 +10,10 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { colors } from '../constants/colors';
 import CustomText from './CustomText';
 import { decrementCounter, incrementCounter } from '../redux/ProductAddToCart';
+import { decrementCounter as GD, incrementCounter as GI, clearCart } from '../redux/GiftData';
+
 import { useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
 const IncrementDecrement = ({
   style,
@@ -18,11 +21,12 @@ const IncrementDecrement = ({
   onpressMinu,
   pCounter,
   firstBox,
+  isGift,
   item
 }) => {
   const dispatch = useDispatch()
+  const navigation = useNavigation()
   const [counter, setCounter] = useState(1);
-
   const incrementCounters = () => setCounter(counter + 1);
   const decrementCounters = () => {
     if (counter > 1) setCounter(counter - 1);
@@ -65,17 +69,41 @@ const IncrementDecrement = ({
     return (
       <View style={[styles.counterContainer, style]}>
         <TouchableOpacity
-          onPress={() => dispatch(decrementCounter(item?.id))}
+          // onPress={() => {isGift ? dispatch(GD(item?.id)) : dispatch(decrementCounter(item?.id))}}
+
+
+
+          onPress={() => {
+            if (isGift) {
+              if (item?.counter && item?.counter > 1) {
+                dispatch(GD(item?.id))
+              } else {
+                dispatch(clearCart());
+                navigation.goBack();
+              }
+            } else {
+              dispatch(decrementCounter(item?.id));
+            }
+          }}
         >
+
           <AntDesign name={'minus'} size={20} color={colors.black} />
         </TouchableOpacity>
         <CustomText>{item?.counter}</CustomText>
         <TouchableOpacity
-          onPress={() => dispatch(incrementCounter(item?.id))}
+          onPress={() => {
+            if (isGift) {
+              dispatch(GI(item?.id))
+            } else {
+              dispatch(incrementCounter(item?.id));
+            }
+          }
+          }
+
         >
           <AntDesign name={'plus'} size={20} color={colors.black} />
         </TouchableOpacity>
-      </View>
+      </View >
     );
   }
 };

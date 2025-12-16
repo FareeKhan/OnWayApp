@@ -312,7 +312,7 @@ const BasketScreen = () => {
 
     navigation.navigate('CheckoutScreen', {
       driverNote: driverNote,
-      subTotal: subTotal
+      discount: discountAmount?.discount_amount || 0
     })
   }
   console.log('cartData',cartData)
