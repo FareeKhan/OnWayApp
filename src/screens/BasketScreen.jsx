@@ -85,7 +85,7 @@
 //       })
 //       return
 //     }
- 
+
 //     navigation.navigate('CheckoutScreen', {
 //       driverNote: driverNote,
 //       subTotal: subTotal
@@ -94,13 +94,13 @@
 
 //   return (
 //     <ScreenView scrollable={true} mh={true}>
-      // <HeaderBox
-      //   style={styles.header}
-      //   title={t('Basket')}
-      //   smallLogo={false}
-      //   innerStyle={{ width: "60%" }}
-      // />
-      // <Subtitle style={{ textAlign: 'center' }}>Cofeea Shop , Business Bay</Subtitle>
+// <HeaderBox
+//   style={styles.header}
+//   title={t('Basket')}
+//   smallLogo={false}
+//   innerStyle={{ width: "60%" }}
+// />
+// <Subtitle style={{ textAlign: 'center' }}>Cofeea Shop , Business Bay</Subtitle>
 
 //       <CartProducts data={cartData} />
 
@@ -256,9 +256,11 @@ import EmptyData from '../components/EmptyData';
 const BasketScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation()
-  const cartData = useSelector((state) => state?.cart?.cartProducts)
+  const baseketData = useSelector((state) => state?.cart?.cartProducts)
   const restId = useSelector((state) => state?.cart?.restaurentID)
   const userId = useSelector((state) => state?.auth?.loginData?.id)
+
+  const cartData = baseketData?.filter((item) => item?.restaurantId == restId)
 
   const [driverNote, setDriverNote] = useState('')
   const [promoCode, setPromoCode] = useState('')
@@ -268,6 +270,17 @@ const BasketScreen = () => {
   const [isLoader, setIsLoader] = useState(false)
 
   const handlePromoCode = async () => {
+
+    if (!userId) {
+      navigation.navigate('LoginScreen', {
+        isBasket: true
+      })
+      showMessage({
+        type: "danger",
+        message: t('PleaseLoginFirst')
+      })
+      return
+    }
     if (promoCode == '') {
       showMessage({
         type: "danger",
@@ -279,7 +292,7 @@ const BasketScreen = () => {
     setIsLoader(true)
     try {
       const result = await postPromo(promoCode, restId, subTotal, userId)
-      console.log('dasdassdas', result)
+      console.log('dasdassdas123123', result)
       if (result?.success) {
         showMessage({
           type: "Success",
@@ -300,8 +313,11 @@ const BasketScreen = () => {
   }
 
   const handleCheckout = () => {
-    
+
     if (!userId) {
+      navigation.navigate('LoginScreen', {
+        isBasket: true
+      })
       showMessage({
         type: "danger",
         message: t('PleaseLoginFirst')
@@ -315,7 +331,6 @@ const BasketScreen = () => {
       discount: discountAmount?.discount_amount || 0
     })
   }
-  console.log('cartData',cartData)
 
   if (cartData?.length == 0) {
     return (

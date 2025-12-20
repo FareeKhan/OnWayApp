@@ -1,30 +1,26 @@
 import {
   FlatList,
-  Image,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import React, { useState } from 'react';
 import CustomText from './CustomText';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import { colors } from '../constants/colors';
 import { fonts } from '../constants/fonts';
 import { useNavigation } from '@react-navigation/native';
-import { imageUrl, mainUrl } from '../constants/data';
+import { mainUrl } from '../constants/data';
 import FastImage from 'react-native-fast-image';
 
 const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
   const navigation = useNavigation();
-  console.log('datadatadata',data)
+  console.log('datadatadata', data)
 
   const [useFallback, setUseFallback] = useState(false);
 
 
   const renderItem = ({ item, index }) => {
     const remoteImage = item?.logo ? `${mainUrl}${item?.logo}` : `${mainUrl}${item?.image}`
-    const defaultImage = require('../assets/shopName.png')
 
     return (
       <TouchableOpacity
@@ -50,9 +46,9 @@ const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
             {item?.description}
           </CustomText>
 
-          <CustomText style={{ fontSize: 12, color: colors.gray1 ,textTransform:"capitalize"}}>
+          <CustomText style={{ fontSize: 12, color: colors.gray1, textTransform: "capitalize" }}>
             {/* 3KM */}
-              {[...new Set(item?.location?.split(/\r?\n/).map(s => s.trim()))].join(", ")}
+            {[...new Set(item?.location?.split(/\r?\n/).map(s => s.trim()))].join(", ")}
             {/* {item?.location} */}
           </CustomText>
 

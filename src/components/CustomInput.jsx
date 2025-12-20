@@ -26,7 +26,7 @@ const CustomInput = ({
   onPressApply,
   countryCode,
   shadow,
-  filter = true,
+  filter,
   inputExtraStyle,
   style,
   value,
@@ -43,7 +43,7 @@ const CustomInput = ({
             styles.container,
             true && {
               marginBottom: 0,
-              width: "90%",
+              width: filter ? "90%":"100%",
               backgroundColor: colors.gray5
             },
             style,

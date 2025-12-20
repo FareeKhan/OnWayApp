@@ -5,15 +5,15 @@ import CustomText from './CustomText';
 import { colors } from '../constants/colors';
 import { fonts } from '../constants/fonts';
 
-const CustomDropDown = ({ data, setValue, value, titleStyle,placeholder, title, dropTitle, maxHeight }) => {
+const CustomDropDown = ({ data, setValue, value, titleStyle, placeholder, title, dropTitle, maxHeight }) => {
 
 
     const [isFocus, setIsFocus] = useState(false);
     return (
-        <View style={{  }}>
+        <View style={{}}>
             {
                 title &&
-                <CustomText style={[styles.title,titleStyle]}>{title}</CustomText>
+                <CustomText style={[styles.title, titleStyle]}>{title}</CustomText>
             }
 
             <View style={[dropTitle && { paddingVertical: 8 }, styles.dropdown]}>
@@ -23,7 +23,7 @@ const CustomDropDown = ({ data, setValue, value, titleStyle,placeholder, title, 
                 }
 
                 <Dropdown
-                    style={[!dropTitle && { height: 50,paddingHorizontal:15, }]}
+                    style={[!dropTitle && { height: 50, paddingHorizontal: 15, }]}
                     placeholderStyle={styles.placeholderStyle}
                     selectedTextStyle={styles.selectedTextStyle}
                     iconStyle={styles.iconStyle}
@@ -38,7 +38,7 @@ const CustomDropDown = ({ data, setValue, value, titleStyle,placeholder, title, 
                     value={value}
                     renderItem={(item) => {
                         return (
-                            <View style={{ paddingVertical: 7, paddingHorizontal: 10}}>
+                            <View style={{ paddingVertical: 7, paddingHorizontal: 10 }}>
                                 <CustomText  >{item?.label}</CustomText>
                             </View>
                         )
@@ -46,8 +46,9 @@ const CustomDropDown = ({ data, setValue, value, titleStyle,placeholder, title, 
                     onFocus={() => setIsFocus(true)}
                     onBlur={() => setIsFocus(false)}
                     onChange={item => {
+                        console.log('dasdassss', item?.label)
                         setValue(item?.label);
-                        setIsFocus(false);
+                        // setIsFocus(false);
                     }}
                 />
             </View>
@@ -60,10 +61,10 @@ export default CustomDropDown
 
 const styles = StyleSheet.create({
     title: {
-        fontSize: 15,
-        marginBottom: 12,
-        color:colors.theme,
-        marginTop:15
+        marginBottom: 8,
+        color: colors.black,
+        fontFamily: fonts.medium,
+        marginTop: 15
     },
     inputBox: {
         marginTop: 30,
@@ -80,11 +81,11 @@ const styles = StyleSheet.create({
         marginRight: 10,
         width: "100%",
         // paddingHorizontal: 19,
-        borderRadius: 7,
-        marginBottom:15,
-        backgroundColor: colors.gray11
+        borderRadius: 10,
+        marginBottom: 18,
+        backgroundColor: colors.gray5
     },
-  
+
     icon: {
         marginRight: 5,
     },
@@ -100,16 +101,16 @@ const styles = StyleSheet.create({
     },
     placeholderStyle: {
         fontSize: 14,
-        color:"#ccc",
+        color: colors.gray1,
         textAlign: 'left',
-        paddingLeft:5
+        paddingLeft: 5
     },
     selectedTextStyle: {
         fontSize: 13,
-        color:colors.black,
+        color: colors.black,
         textAlign: 'left',
-        paddingLeft:5,
-        fontFamily:fonts.regular
+        paddingLeft: 5,
+        fontFamily: fonts.regular
     },
     iconStyle: {
         width: 20,

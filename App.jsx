@@ -12,6 +12,7 @@ import CustomCarousel from './src/components/CustomCarousel';
 import HomeScreen from './src/screens/HomeScreen';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { STRIPE_KEY } from './src/constants/data';
+import AddressScreen from './src/screens/AddressScreen';
 
 
 LogBox.ignoreAllLogs()
@@ -23,6 +24,8 @@ const App = () => {
       <StripeProvider publishableKey={STRIPE_KEY}>
         <NavigationContainer>
           <AppNavigation />
+
+          {/* <AddressScreen /> */}
         </NavigationContainer>
       </StripeProvider>
 

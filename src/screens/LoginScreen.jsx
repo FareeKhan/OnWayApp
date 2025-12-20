@@ -23,9 +23,10 @@ import { loginPhoneNo } from '../userServices/UserService';
 import { showMessage } from 'react-native-flash-message';
 const { height } = Dimensions.get('screen');
 
-const LoginScreen = () => {
+const LoginScreen = ({route}) => {
   const { t } = useTranslation();
   const navigation = useNavigation();
+  const {isBasket} = route?.params || ''
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(Countries[0]);
@@ -53,6 +54,7 @@ const LoginScreen = () => {
         navigation.navigate('VerificationScreen', {
           phoneNo: PhoneWithCountryCode,
           otpCode: result?.data?.otp,
+          isBasket:isBasket
         });
       }
     } catch (e) {

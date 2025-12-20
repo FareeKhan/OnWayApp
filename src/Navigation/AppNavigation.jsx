@@ -36,7 +36,9 @@ const AppNavigation = () => {
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="BottomNavigation" component={BottomNavigation} />
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
-      <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
+      <Stack.Screen name="VerificationScreen" component={VerificationScreen}
+       options={{ gestureEnabled: false }}
+      />
     </Stack.Navigator>
   );
 };

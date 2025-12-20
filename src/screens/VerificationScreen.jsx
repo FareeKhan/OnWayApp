@@ -29,7 +29,7 @@ const VerificationScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch()
 
-  const { phoneNo, otpCode } = route?.params || ''
+  const { phoneNo, otpCode, isBasket } = route?.params || ''
   const [value, setValue] = useState('');
   const [isLaoder, setIsLoader] = useState(false);
 
@@ -58,7 +58,21 @@ const VerificationScreen = ({ navigation, route }) => {
           phoneNo: result?.data?.customer?.phone_number,
           token: result?.data?.token,
         }))
-        navigation.navigate('BottomNavigation')
+        {
+
+          isBasket ?
+
+            navigation.navigate('BottomNavigation', {
+              screen: 'HomeStack',
+              params: {
+                screen: 'BasketScreen'
+              }
+            })
+
+            :
+            navigation.navigate('BottomNavigation')
+
+        }
       }
     } catch (e) {
       console.log(e)

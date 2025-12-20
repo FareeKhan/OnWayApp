@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   FlatList,
   I18nManager,
@@ -8,15 +9,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderBox from '../components/HeaderBox';
 import { useTranslation } from 'react-i18next';
 import CustomCarousel from '../components/CustomCarousel';
 import ShopsDataCard from '../components/ShopsDataCard';
 import CustomButton from '../components/CustomButton';
-import MapView from 'react-native-maps';
-import { catData, imageUrl, mainUrl, shopsData } from '../constants/data';
+import MapView, { Marker } from 'react-native-maps';
+import { imageUrl, mainUrl, } from '../constants/data';
 import CustomText from '../components/CustomText';
 import Subtitle from '../components/Subtitle';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -24,36 +25,79 @@ import { colors } from '../constants/colors';
 import { fonts } from '../constants/fonts';
 import { useNavigation } from '@react-navigation/native';
 import CustomInput from '../components/CustomInput';
-import { fetchCategories, fetchResaurentsByCategory } from '../userServices/UserService';
+import { fetchCategories, fetchResaurentsByCategory, NearByRest } from '../userServices/UserService';
 import FastImage from 'react-native-fast-image';
 import ScreenLoader from '../components/ScreenLoader';
 import { getAddressFromCoordinates, locationPermission } from '../constants/helper';
 import Geolocation from '@react-native-community/geolocation';
 import EmptyData from '../components/EmptyData';
+import { showMessage } from 'react-native-flash-message';
+import { useDispatch, useSelector } from 'react-redux';
+import { addAddress, addressData, removeAddress } from '../redux/addressData';
 
 const { width, height } = Dimensions.get('screen');
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const dispatch = useDispatch()
+  const address = useSelector((item) => item?.addressData?.address)
+  const userId = useSelector((state) => state?.auth?.loginData?.id)
+
+  const mapRef = useRef(null);
   const [selectedView, setSelectedView] = useState('Home');
   const [categoriesArray, setCategoriesArray] = useState([]);
   const [restaurantsByCategory, setRestaurantsByCategory] = useState([])
   const [restaurentLoader, setRestaurentLoader] = useState(false)
-  const [address, setAddress] = useState(false)
+  // const [address, setAddress] = useState(false)
   const [isLoader, setIsLoader] = useState(false)
   const [search, setSearch] = useState('')
+  const [nearByRestaurent, setNearByRestaurent] = useState([])
   const filterSearchCategories = search ? categoriesArray?.filter((item) => item?.name?.toLowerCase()?.includes(search?.toLowerCase())) : categoriesArray
+  const cloneAddress = address?.find((item) => item?.userId == userId)
 
-
+  const latitute = address[0]?.latitude || cloneAddress?.latitude
+  const longitude = address[0]?.longitude || cloneAddress?.longitude
+  const listViewData = nearByRestaurent?.length > 0 ? nearByRestaurent : restaurantsByCategory?.restaurants
   useEffect(() => {
     categoriesData()
     fetchUserCurrentLocation()
   }, [])
 
+
+  // useEffect(() => {
+  //   if (selectedView == 'MapView') {
+  //     if (mapRef.current && nearByRestaurent?.length > 0 || restaurantsByCategory?.restaurants?.length > 0) {
+
+  //       const selectArray = nearByRestaurent?.length > 0 ? nearByRestaurent : restaurantsByCategory?.restaurants
+
+
+
+  //       const coordinates = selectArray.map(item => ({
+  //         latitude: Number(item?.latitude),
+  //         longitude: Number(item?.longitude),
+  //       }));
+  //       console.log('coordinatescoordinates',coordinates)
+
+
+  //       mapRef.current.fitToCoordinates(coordinates, {
+  //         edgePadding: {
+  //           top: 80,
+  //           right: 80,
+  //           bottom: 300, // for bottom list overlay
+  //           left: 80,
+  //         },
+  //         animated: true,
+  //       });
+  //     }
+  //   }
+  // }, [selectedView]);
+
+
   // useEffect(() => {
   //   categoriesData()
   // }, [selectedView])
+
 
   const categoriesData = async () => {
     setIsLoader(true)
@@ -83,10 +127,50 @@ const HomeScreen = () => {
     }
   };
 
+  const fetchNearRestautents = async () => {
+    if (!latitute || !longitude) {
+      showMessage({
+        type: 'danger',
+        message: t('FirstAllow')
+      })
+      return
+    }
+
+    try {
+      // const data = {
+      //   lat: 25.18408708860248,
+      //   lng: 55.26428819573816,
+      // }
+
+      const data = {
+        lat: latitute,
+        lng: longitude,
+      }
+      const result = await NearByRest(data);
+      console.log('latitute', latitute, longitude)
+      if (result?.success && result?.data?.data?.length != 0) {
+        setNearByRestaurent(result?.data?.data)
+        setSelectedView('ListView')
+
+      } else {
+        setNearByRestaurent([])
+        showMessage({
+          type: 'danger',
+          message: t('noRestaurentsNearBy')
+        })
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      // setRestaurentLoader(false)
+    }
+  };
+
   const handleCategory = (id) => {
     setSelectedView('ListView')
     resaurentsByCategory(id)
   }
+
   const HomeView = () => {
     return (
       <View style={{ top: -20 }}>
@@ -100,7 +184,7 @@ const HomeScreen = () => {
           numColumns={2}
           columnWrapperStyle={{ justifyContent: "space-between", }}
           contentContainerStyle={{ gap: 20, marginVertical: 20 }}
-          ListEmptyComponent={<EmptyData />}
+          ListEmptyComponent={<EmptyData style={{ height: 100 }} />}
           renderItem={({ item, index }) => {
             const remotePath = `${imageUrl}${item?.image}`
             return (
@@ -139,7 +223,7 @@ const HomeScreen = () => {
         {
           search == '' &&
           <TouchableOpacity
-            onPress={() => setSelectedView('ListView')}
+            onPress={() => fetchNearRestautents()}
             style={{
               gap: 8,
               backgroundColor: colors.gray5,
@@ -163,13 +247,19 @@ const HomeScreen = () => {
     );
   };
 
+
   const ListView = () => {
     return (
       <View>
         <Subtitle style={{ fontSize: 13, marginTop: 25, marginBottom: 10 }}>
           {restaurantsByCategory?.category?.name}
         </Subtitle>
-        <ShopsDataCard data={restaurantsByCategory?.restaurants} />
+        {
+          listViewData?.length == 0 ?
+            <EmptyData />
+            :
+            <ShopsDataCard data={nearByRestaurent?.length > 0 ? nearByRestaurent : restaurantsByCategory?.restaurants} />
+        }
       </View>
     );
   };
@@ -201,7 +291,7 @@ const HomeScreen = () => {
 
           <CustomText style={styles.shopName}>{item?.name}</CustomText>
           <Subtitle style={{
-    textTransform:"capitalize"
+            textTransform: "capitalize"
 
           }}>{[...new Set(item?.location?.split(/\r?\n/).map(s => s.trim()))].join(", ")}</Subtitle>
 
@@ -227,27 +317,41 @@ const HomeScreen = () => {
   const MapViewComp = () => {
     return (
       <View style={styles.mapViewContainer}>
-        {/* <View style={styles.mapHeader}>
-          <HeaderWithAll title={t('shopsNear')} style={{ marginTop: 30 }} />
-        </View> */}
-
         <View style={styles.mapWrapper}>
-          <MapView
+          {/* <MapView
             initialRegion={{
-              latitude: 37.78825,
-              longitude: -122.4324,
+              latitude: latitute || 25.2048,
+              longitude: longitude || 55.2708,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
             style={styles.map}
-          />
+          /> */}
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            initialRegion={{
+              latitude: Number(address?.latitude) || 25.2048,
+              longitude: Number(address?.longitude) || 55.2708,
+            }}
+          >
+            {restaurantsByCategory?.restaurants?.map((item, index) => (
+              <Marker
+                key={item.id || index}
+                coordinate={{
+                  latitude: item.latitude,
+                  longitude: item.longitude,
+                }}
+                title={item.name}
+                description={item.location}
+              />
+            ))}
+          </MapView>
         </View>
 
         <View style={styles.mapListOverlay}>
           <FlatList
-            // data={shopsData}
-
-            data={restaurantsByCategory?.restaurants}
+            data={nearByRestaurent?.length > 0 ? nearByRestaurent : restaurantsByCategory?.restaurants}
             keyExtractor={(_, index) => index?.toString()}
             renderItem={renderItem}
             contentContainerStyle={styles.horizontalList}
@@ -259,24 +363,34 @@ const HomeScreen = () => {
     );
   };
 
-
   const fetchUserCurrentLocation = async () => {
     try {
       const result = await locationPermission()
       if (result == 'granted') {
-        Geolocation.getCurrentPosition((position) => {
-          console.log('casduasd', position)
+        Geolocation.getCurrentPosition(async (position) => {
           const { longitude, latitude } = position.coords
-          console.log('longitude, latitude ', longitude, latitude)
-          const address = getAddressFromCoordinates(longitude, latitude)
-          if (address) {
-            setAddress(address)
+          const addressData = await getAddressFromCoordinates(longitude, latitude)
+          console.log('testingAddress', address?.formattedAddress)
+          if (address?.length == 0) {
+            dispatch(addAddress(addressData))
           }
         })
       }
       console.log('resualtae', result)
     } catch (error) {
       console.log('error', error)
+    }
+  }
+
+  const handleEditAddress = () => {
+    if (userId) {
+      navigation.navigate('AddressScreen')
+
+    } else {
+      showMessage({
+        type: "danger",
+        message: t('PleaseLoginToEdit')
+      })
     }
   }
 
@@ -292,7 +406,7 @@ const HomeScreen = () => {
   return (
     <View style={{ flex: 1 }}>
       <ScreenView scrollable={true} mh={selectedView == 'MapView'}>
-        <HeaderBox style={selectedView == 'MapView' && { paddingHorizontal: 20 }} onlyLogo={selectedView == 'Home'} onPressBack={() => setSelectedView('Home')} />
+        <HeaderBox style={selectedView == 'MapView' && { paddingHorizontal: 20 }} onlyLogo={selectedView == 'Home'} onPressBack={() => { setNearByRestaurent([]), setSelectedView('Home') }} />
 
         <View style={[{ marginTop: 15 }, selectedView == 'MapView' && { marginHorizontal: 20 }]}>
           <CustomInput
@@ -300,18 +414,28 @@ const HomeScreen = () => {
             placeholder={t('search')}
             value={search}
             onChangeText={setSearch}
+            filter={true}
 
           />
         </View>
 
         {selectedView == 'Home' && (
           <>
-            <CustomText style={{ marginTop: 20, marginBottom: 10 }}>
-              {t('yourLocation')}: {address}
-            </CustomText>
+            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 20, marginBottom: 10, }}>
+              <CustomText style={{ width: "90%" }}>
+                {t('yourLocation')}: {address[0]?.formattedAddress || cloneAddress?.formattedAddress}
+              </CustomText>
 
+
+              {/* <TouchableOpacity onPress={() => navigation.navigate('AddressScreen')}> */}
+              <TouchableOpacity onPress={() => handleEditAddress()}>
+
+
+
+                <CustomText style={{ color: "green" }}>{t('edit')}</CustomText>
+              </TouchableOpacity>
+            </View>
             <HomeView />
-
           </>
         )}
 
@@ -325,9 +449,8 @@ const HomeScreen = () => {
       </ScreenView>
 
       {selectedView == 'MapView' && <MapViewComp />}
-
       <>
-        {selectedView !== 'Home' && (
+        {selectedView !== 'Home' && listViewData?.length > 0 && (
           <CustomButton
             onPress={() => setSelectedView(selectedView == 'ListView' ? 'MapView' : "ListView")}
             title={selectedView == 'ListView' ? t('mapView') : t('listView')}
@@ -343,13 +466,9 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
   searchInput: { marginTop: 40, borderColor: colors.gray5 },
-
   shopCardWrapper: {},
-
   shopImage: { width: width / 2, height: 160 },
-
   shopInfoContainer: {
     backgroundColor: colors.white,
     paddingVertical: 15,
@@ -377,7 +496,7 @@ const styles = StyleSheet.create({
   shopName: {
     fontFamily: fonts.bold,
     color: colors.primary,
-    textTransform:"capitalize"
+    textTransform: "capitalize"
   },
   servicesRow: {
     flexDirection: 'row',

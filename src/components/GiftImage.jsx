@@ -29,9 +29,9 @@ const GiftImage = ({
       style={style}
     >
       <Image
-        source={imagePath ? imagePath : require('../assets/giftCard.png')}
-        style={{ width: '100%', height: 240 }}
-        resizeMode='contain'
+        source={imagePath ? {uri:imagePath} : require('../assets/giftCard.png')}
+        style={{ width: '100%', height: 200}}
+        borderRadius={10}
       />
 
       {label && (

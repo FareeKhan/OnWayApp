@@ -5,13 +5,16 @@ import { persistReducer, persistStore } from 'redux-persist';
 import { thunk } from 'redux-thunk';
 import AddFavorite from './AddFavorite'
 import ProductAddToCart from './ProductAddToCart';
-import  storeCar  from './storeAddedCar';
-import GiftData  from './GiftData';
+import storeCar from './storeAddedCar';
+import GiftData from './GiftData';
+
+import addressData from './addressData';
+
 
 const persistConfig = {
   key: "root",
   storage: AsyncStorage,
-  whitelist: ["auth", "favorite", "cart","carArray"],
+  whitelist: ["auth", "favorite", "cart", "carArray", "addressData"],
   blacklist: [],
 };
 
@@ -21,6 +24,7 @@ const rootReducer = combineReducers({
   cart: ProductAddToCart,
   carArray: storeCar,
   giftInfo: GiftData,
+  addressData: addressData
 })
 
 // Persisted reducer

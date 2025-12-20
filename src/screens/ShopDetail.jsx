@@ -25,7 +25,7 @@ const ShopDetail = ({ isHeader = true, isGifterPage, hideArrow, route, selectedS
   const { t } = useTranslation()
   const resId = id || selectedShopId
 
-  console.log('dasdasdasdasdasuydia8s7d',resId)
+  console.log('dasdasdasdasdasuydia8s7d', resId)
 
 
   const [selectedDrink, setSelectedDrink] = useState('');
@@ -133,6 +133,14 @@ const ShopDetail = ({ isHeader = true, isGifterPage, hideArrow, route, selectedS
                   style={styles.coverImage}
                   isBorder={false}
                 />
+
+                <View   style={styles.logoContainer}>
+                   <RemoteImage
+                  uri={`${mainUrl}${singleRestaurentData?.restaurant?.logo}`}
+                  style={styles.logoImage}
+                  isBorder={false}
+                />
+                </View>
               </View>
 
               <View style={styles.detailsContainer}>
@@ -143,7 +151,7 @@ const ShopDetail = ({ isHeader = true, isGifterPage, hideArrow, route, selectedS
                 <TouchableOpacity
                   style={styles.restaurantInfo}
                   onPress={() => setShowList(true)}
-                  disabled={hideArrow}
+                // disabled={hideArrow}
                 >
                   <View>
                     <CustomText style={styles.ratingText}>
@@ -155,7 +163,6 @@ const ShopDetail = ({ isHeader = true, isGifterPage, hideArrow, route, selectedS
                     </Subtitle>
                     <Subtitle>Preparation time 15 mins</Subtitle>
                   </View>
-{console.log('singleRestaurentDatasingleRestaurentDatasingleRestaurentData',singleRestaurentData)}
                   <Ionicons
                     name={I18nManager.isRTL ? 'chevron-back-outline' : 'chevron-forward-outline'}
                     size={20}
@@ -227,6 +234,21 @@ const styles = StyleSheet.create({
   coverImage: {
     width: '100%',
     height: 200,
+  },
+    logoImage: {
+    width: 50,
+    height: 50,
+    borderRadius:50,
+    
+ 
+  },
+  logoContainer:{
+    position:"absolute",
+    borderWidth:1,
+    borderRadius:50,
+    bottom:0,
+    zIndex:100,
+    left:30
   },
   detailsContainer: {
     paddingHorizontal: 20,

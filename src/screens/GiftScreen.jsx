@@ -23,7 +23,7 @@ import GiftImage from '../components/GiftImage';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { fetchReceivedGifts, fetchSendGifts, fetchSentGifts, giftRcvd, removeGiftData } from '../userServices/UserService';
+import { fetchSendGifts, fetchSentGifts, giftRcvd, giftWalletUpdate, removeGiftData } from '../userServices/UserService';
 import { useSelector } from 'react-redux';
 import { showMessage } from 'react-native-flash-message';
 import ScreenLoader from '../components/ScreenLoader';
@@ -34,25 +34,27 @@ const { height } = Dimensions.get('screen');
 const GiftScreen = () => {
   const navigation = useNavigation()
   const token = useSelector((state) => state.auth.loginData?.token)
+  const userId = useSelector((state) => state.auth.loginData?.id)
+
+
   const { t } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState('sendGift');
   const [isShowDetails, setIsShowDetails] = useState(null);
   const [isReceiverSender, setIsReceiverSender] = useState();
-  const [isShowSenderDetail, setIsShowSenderDetail] = useState(false);
+  const [isShowSenderDetail, setIsShowSenderDetail] = useState('');
   const [sendGiftData, setSendGiftData] = useState([]);
+  const [receivedGiftData, setReceivedGiftData] = useState([]);
   const [deleteLoader, setDeleteLoader] = useState(false);
-
-
 
   useFocusEffect(useCallback(() => {
     getSentGifts()
     rcvdGift()
   }, []))
 
-
   const getSentGifts = async () => {
     try {
       const result = await fetchSendGifts(token);
+      console.log('resultresult', result)
       if (result?.success) {
         setSendGiftData(result?.data?.data)
       }
@@ -60,15 +62,52 @@ const GiftScreen = () => {
       console.log(e);
     }
   };
-  const deleteGift = async (id) => {
+  const deleteGift = async (id, isRcvr) => {
     setDeleteLoader(true)
     try {
-      const result = await removeGiftData(id,token);
+      const result = await removeGiftData(49, token);
       if (result?.success) {
-        getSentGifts()
+        {
+          isRcvr ?
+            rcvdGift()
+            :
+            getSentGifts()
+          showMessage({
+            type: "success",
+            message: t('GiftDeleted')
+          })
+
+        }
+
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setDeleteLoader(false)
+    }
+  };
+
+  const rcvdGift = async () => {
+    try {
+      const result = await giftRcvd(token);
+      if (result?.success) {
+        setReceivedGiftData(result?.data?.data)
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setDeleteLoader(false)
+    }
+  };
+
+  const updateWallet = async () => {
+    try {
+      const result = await giftWalletUpdate(isShowSenderDetail, userId);
+      console.log('result-->>>', result)
+      if (result?.success) {
         showMessage({
           type: "success",
-          message: t('GiftDeleted')
+          message: t('Balance added to Wallet')
         })
       }
     } catch (e) {
@@ -79,48 +118,29 @@ const GiftScreen = () => {
   };
 
 
-    const rcvdGift = async () => {
-    // setDeleteLoader(true)
-    try {
-      const result = await giftRcvd(token);
-      console.log('resultresult',result)
-      // if (result?.success) {
-      //   getSentGifts()
-      //   showMessage({
-      //     type: "success",
-      //     message: t('GiftDeleted')
-      //   })
-      // }
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setDeleteLoader(false)
-    }
-  };
-
 
   const RenderSendGiftsData = () => {
 
-if(sendGiftData?.length == 0){
-  return(
-    <EmptyData title={t('NoGiftFound')}/>
-  )
-}
-    
+    if (sendGiftData?.length == 0) {
+      return (
+        <EmptyData title={t('NoGiftFound')} />
+      )
+    }
+
     return sendGiftData?.map((item, index) => {
       return (
         <View style={styles.cardWrapper} key={index}>
           <View style={styles.cardHeader}>
             <View>
               <CustomText style={styles.productName}>
-                {item?.gift_item}
+                {item?.gift_item}  {currency} {item?.products[0]?.price}
               </CustomText>
               {/* <CustomText style={styles.productPrice}>
                 {currency} {item?.price}
               </CustomText> */}
             </View>
             <Image
-              source={item?.productImage}
+              source={{ uri: item?.product_image }}
               style={styles.productImage}
               borderRadius={5}
             />
@@ -131,7 +151,8 @@ if(sendGiftData?.length == 0){
               <GiftImage
                 handleHidePress={() => setIsShowDetails(null)}
                 setIsShowDetails={setIsShowDetails}
-                imagePath={require('../assets/giftMSg.png')}
+                // imagePath={require('../assets/giftMSg.png')}
+                imagePath={item?.gift_theme}
                 label={item?.gift_message}
                 style={styles.giftImageMargin}
                 senderName={item?.recipient_name}
@@ -140,6 +161,7 @@ if(sendGiftData?.length == 0){
               <>
                 <GiftImage
                   setIsShowDetails={setIsShowDetails}
+                  imagePath={item?.gift_theme}
                 />
                 <CustomButton
                   onPress={() => setIsShowDetails(index)}
@@ -178,17 +200,17 @@ if(sendGiftData?.length == 0){
   };
 
   const RenderReceivedGiftsData = () => {
-    return [1, 2, 3]?.map((item, index) => {
+    return receivedGiftData?.map((item, index) => {
       return (
         <View key={item}>
           {isReceiverSender == index ? (
             <GiftImage
               handleHidePress={() => setIsReceiverSender(null)}
               onPress={() => setIsReceiverSender(null)}
-              imagePath={require('../assets/giftMSg.png')}
-              label={'Have a good day'}
+              imagePath={item?.gift_theme ? { uri: item?.gift_theme } : require('../assets/giftMSg.png')}
+              label={item?.gift_message}
               style={styles.receivedGiftImage}
-              senderName={'Muhammad'}
+              senderName={item?.sender?.phone_number}
             />
           ) : (
             <GiftImage />
@@ -206,7 +228,7 @@ if(sendGiftData?.length == 0){
 
             <CustomButton
               title={t('showAllDetails')}
-              onPress={() => setIsShowSenderDetail(true)}
+              onPress={() => setIsShowSenderDetail(item)}
               style={[
                 styles.receiverSenderButton,
                 isReceiverSender == index && styles.receiverSenderShift,
@@ -233,21 +255,22 @@ if(sendGiftData?.length == 0){
         </View>
       );
     };
-
+    console.log('ppppp', isShowSenderDetail?.products[0]?.image)
     return (
       <View>
         <View style={styles.rcvrOuterBox}>
           <View style={styles.rcvrDetail}>
             <View style={styles.productInfo}>
               <CustomText style={styles.productName}>
-                Espresso single shot ethiopian beans
+                {isShowSenderDetail?.gift_item}
               </CustomText>
               <CustomText style={styles.productPrice}>
-                {currency} 66.00
+                {currency}  {isShowSenderDetail?.products[0]?.price} X {isShowSenderDetail?.products[0]?.quantity}
+
               </CustomText>
             </View>
             <Image
-              source={require('../assets/cup.png')}
+              source={{ uri: isShowSenderDetail?.products[0]?.image }}
               style={styles.productImage}
               borderRadius={5}
             />
@@ -264,18 +287,18 @@ if(sendGiftData?.length == 0){
               title={t('addAmountWallet')}
               style={styles.addAmountWalletBtn}
               btnTxtStyle={styles.smallBtnText}
+              onPress={() => updateWallet()}
             />
           </View>
         </View>
 
-        <GiftImage />
-
+        {/* <GiftImage /> */}
         <View style={styles.secondGiftWrapper}>
           <GiftImage
-            imagePath={require('../assets/giftMSg.png')}
-            label={'Have a good day'}
+            imagePath={{ uri: isShowSenderDetail?.gift_theme }}
+            label={isShowSenderDetail?.gift_message}
             style={styles.secondGiftImage}
-            senderName={'Muhammad'}
+            senderName={isShowSenderDetail?.sender?.phone_number}
             setIsShowDetails={setIsShowDetails}
 
           />
@@ -288,20 +311,20 @@ if(sendGiftData?.length == 0){
           </TouchableOpacity>
         </View>
 
-        <View style={styles.infoList}>
+        {/* <View style={styles.infoList}>
           <InfoData label={t('sentData')} value={'1-8-2025 | 08:00AM'} />
           <InfoData label={t('expiryDate')} value={'30-12-2025 | 08:00AM'} />
-        </View>
+        </View> */}
 
         <View style={styles.bottomRow}>
           <CustomButton
             title={t('back')}
-            onPress={() => setIsShowSenderDetail(false)}
+            onPress={() => setIsShowSenderDetail('')}
             style={[styles.addItemCartBtn, { width: "22%" }]}
             btnTxtStyle={styles.smallBtnText}
           />
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => deleteGift(isShowSenderDetail?.id, true)}>
             <CustomText style={styles.deleteHistoryText}>
               {t('deleteFromHistory')}
             </CustomText>
@@ -420,6 +443,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: 20
   },
   backBtn: { height: I18nManager.isRTL ? 40 : 20, width: '30%' },
   deleteHistoryText: { fontSize: 12, color: colors.red },

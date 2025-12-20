@@ -1,7 +1,6 @@
-// export const mainUrl = 'https://onway.loca.lt/';
-// export const mainUrl = 'https://71a6865316cc.ngrok-free.app/';
 export const mainUrl = 'https://backend.onway.ae/';
-// export const mainUrl = 'https://6fe2c8fb9c8c.ngrok-free.app/';
+
+// export const mainUrl = 'https://6002275ab989.ngrok-free.app/';
 export const ImageBaseUrl = 'https://backend.onway.ae';
 export const baseUrl = `${mainUrl}api/`;
 export const imageUrl = `${mainUrl}uploads/`;
@@ -10,7 +9,7 @@ export const SP_KEY =
 
 
 //  export const STRIPE_KEY = "pk_live_51MM5XtCQGm1ERl3NU2tG5pdUhQwumtVnVVqQqvBSgZgKMvRhdxBjFUtof70c8wU68lmohbQan37Z8NhBco3ukZiV00FjYSGpFK"
- export const STRIPE_KEY = "pk_test_51SOZA0COzbE7fBAMwRoi2wspVojLIK9SiqI9I7DJUrYNpwCcdUQs3bUPWRPu11R8CmPGBpDullGI5e7liLrOtXzh00R4HTUs0u"
+export const STRIPE_KEY = "pk_test_51SOZA0COzbE7fBAMwRoi2wspVojLIK9SiqI9I7DJUrYNpwCcdUQs3bUPWRPu11R8CmPGBpDullGI5e7liLrOtXzh00R4HTUs0u"
 
 export const GOOGLE_API = 'AIzaSyBJVhlenAMsRkF2yHARSey2mtIFEW2_rfo';
 import ApplePayMethod from '../assets/svg/ApplePayMethod.svg';
@@ -378,3 +377,14 @@ export const catData = [
     title: "Coffee"
   },
 ]
+
+
+export const UAE_EMIRATES = [
+  { label: 'Abu Dhabi', labelAr: 'أبوظبي', value: 'abu_dhabi' },
+  { label: 'Dubai', labelAr: 'دبي', value: 'dubai' },
+  { label: 'Sharjah', labelAr: 'الشارقة', value: 'sharjah' },
+  { label: 'Ajman', labelAr: 'عجمان', value: 'ajman' },
+  { label: 'Umm Al Quwain', labelAr: 'أم القيوين', value: 'umm_al_quwain' },
+  { label: 'Ras Al Khaimah', labelAr: 'رأس الخيمة', value: 'ras_al_khaimah' },
+  { label: 'Fujairah', labelAr: 'الفجيرة', value: 'fujairah' }
+];

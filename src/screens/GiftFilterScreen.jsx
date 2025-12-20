@@ -12,9 +12,9 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import React, {  useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ScreenView from '../components/ScreenView';
-import {giftFilters, mainUrl, namesData } from '../constants/data';
+import { giftFilters, ImageBaseUrl, mainUrl, namesData } from '../constants/data';
 import HeaderBox from '../components/HeaderBox';
 import { useTranslation } from 'react-i18next';
 import CustomText from '../components/CustomText';
@@ -51,203 +51,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addGiftProductToCart } from '../redux/GiftData';
 import FastImage from 'react-native-fast-image';
 import { useNavigation } from '@react-navigation/native';
+import SelectedReceiver from '../components/SelectedReceiver';
 
 
 
-const SelectedReceiver = ({
-  selectedContacts,
-  setSelectedContacts,
-  manualNumber,
-  setManualNumber,
-  t,
-  setIsContactPickerModal
-}) => {
 
-  const getRandomColor = () => {
-    const letters = "0123456789ABCDEF"
-    let color = "#"
-    for (let i = 0; i < 6; i++) {
-      color = color + letters[Math.floor(Math.random() * 16)]
-    }
-    return color
-  }
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View>
-          {/* Selected Users */}
-          {/* <View style={styles.namesContainer}>
-          {namesData?.map((item, index) => {
-            return (
-              <View style={styles.nameItem} key={index}>
-                <View
-                  style={[styles.outerCircle, { borderColor: item?.color }]}
-                >
-                  <View
-                    style={[
-                      styles.innerCircle,
-                      {
-                        backgroundColor: item?.color,
-                        borderColor: item?.color,
-                      },
-                    ]}
-                  >
-                    <CustomText style={styles.initialText}>
-                      {item?.title?.charAt(0)?.toUpperCase()}
-                    </CustomText>
-                  </View>
-
-                  <TouchableOpacity style={styles.minusButton}>
-                    <AntDesign
-                      name="minus"
-                      size={15}
-                      style={styles.minusIcon}
-                      color={colors.white}
-                    />
-                  </TouchableOpacity>
-                </View>
-                <CustomText style={styles.nameText}>{item?.title}</CustomText>
-              </View>
-            );
-          })}
-        </View> */}
-          <View style={styles.namesContainer}>
-            {selectedContacts?.map((item, index) => {
-              if (!item.color) item.color = getRandomColor();
-
-
-              const fullName = item?.givenName + ' ' + (item?.familyName || '');
-
-              return (
-                <View style={styles.nameItem} key={item.recordID || index}>
-                  <View style={[styles.outerCircle, { borderColor: item.color }]}>
-                    <View
-                      style={[
-                        styles.innerCircle,
-                        { backgroundColor: item.color, borderColor: item.color },
-                      ]}
-                    >
-                      <CustomText style={styles.initialText}>
-                        {item.givenName?.charAt(0)?.toUpperCase()}
-                      </CustomText>
-                    </View>
-
-                    <TouchableOpacity
-                      style={styles.minusButton}
-                      onPress={() => {
-                        // Remove contact from selection
-                        setSelectedContacts(prev =>
-                          prev.filter(c => c.recordID !== item.recordID)
-                        );
-                      }}
-                    >
-                      <AntDesign name="minus" size={15} style={styles.minusIcon} color={colors.white} />
-                    </TouchableOpacity>
-                  </View>
-                  <CustomText style={styles.nameText}>{fullName}</CustomText>
-                </View>
-              );
-            })}
-          </View>
-
-          <TouchableOpacity
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 20,
-              paddingHorizontal: 12,
-              gap: 15,
-              borderWidth: 1,
-              borderColor: colors.black1,
-              paddingVertical: 10,
-              borderRadius: 10,
-            }}
-            onPress={() => setIsContactPickerModal(true)}
-          >
-            <MaterialIcons name={'contacts'} size={20} color={colors.primary} />
-            <CustomText style={{ fontFamily: fonts.medium }}>
-              {t('selectFromContacts')}
-            </CustomText>
-            <Entypo
-              name={
-                I18nManager.isRTL ? 'chevron-small-left' : 'chevron-small-right'
-              }
-              size={24}
-              color={colors.black}
-              style={{ marginLeft: 'auto' }}
-            />
-          </TouchableOpacity>
-
-          <HeaderWithAll title={t('typePhone')} style={{ marginTop: 12 }} />
-
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: -5,
-              paddingHorizontal: 12,
-              gap: 15,
-              borderColor: colors.black1,
-              paddingVertical: 12,
-              borderRadius: 10,
-              backgroundColor: colors.white,
-              borderWidth: 1,
-            }}
-          >
-            <FontAwesome5 name={'mobile'} size={20} color={colors.primary} />
-            {/* <CustomText style={{ fontFamily: fonts.medium }}>
-            {t('addNewNumber')}
-          </CustomText> */}
-
-            <TextInput
-              placeholder={t('addNewNumber')}
-              style={{ width: "90%" }}
-              value={manualNumber}
-              onChangeText={setManualNumber}
-              onBlur={() => {
-                if (manualNumber?.length == 0) return
-
-                if (manualNumber?.length < 10) {
-                  showMessage({
-                    type: "warning",
-                    message: t("invalid")
-                  })
-                } else {
-                  const alreadyAdded = selectedContacts?.some((item) => item?.phoneNumber == manualNumber)
-
-                  if (!alreadyAdded) {
-                    setSelectedContacts((prev) => [
-                      ...prev,
-                      {
-                        recordID: Date.now().toString(), // unique ID
-                        givenName: manualNumber, // you can treat as number contact
-                        phoneNumber: manualNumber,
-                      }
-                    ])
-                  }
-                }
-              }}
-            />
-
-            {/* <Entypo
-            name={
-              I18nManager.isRTL ? 'chevron-small-left' : 'chevron-small-right'
-            }
-            size={24}
-            color={colors.black}
-            style={{ marginLeft: 'auto' }}
-          /> */}
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
-
-  );
-}
 
 const GiftFilterScreen = ({ route }) => {
   const { t } = useTranslation();
@@ -274,18 +82,20 @@ const GiftFilterScreen = ({ route }) => {
   const [selectedShop, setSelectedShop] = useState('');
   const [manualNumber, setManualNumber] = useState('');
   const [cardName, setCardName] = useState('');
-
+  console.log('giftCartgiftCartgiftCart', giftCart)
 
   useEffect(() => {
     restaurentData()
   }, [])
 
-
   const restaurentData = async () => {
     try {
       const result = await fetchRestaurentList()
       if (result?.success) {
-        setAllRestaurants(result?.data?.data)
+        const uniqueRestaurants = Array.from(
+          new Set(result?.data?.data.map(p => JSON.stringify(p.restaurant)))
+        ).map(str => JSON.parse(str));
+        setAllRestaurants(uniqueRestaurants)
       }
     } catch (error) {
       console.log('error', error)
@@ -451,9 +261,8 @@ const GiftFilterScreen = ({ route }) => {
   };
 
   const handleRestaurent = (item) => {
-    setSelectedShop(item?.restaurant_id), setIsSelectedShop(true)
+    setSelectedShop(item?.id), setIsSelectedShop(true)
     dispatch(addGiftProductToCart({ item }))
-
   }
 
   const lastStep =
@@ -508,7 +317,6 @@ const GiftFilterScreen = ({ route }) => {
             title={t('selectedReceiver')}
             style={{ marginTop: 30 }}
           />
-          {/* <SelectedReceiver /> */}
 
           <SelectedReceiver
             selectedContacts={selectedContacts}
@@ -540,6 +348,7 @@ const GiftFilterScreen = ({ route }) => {
           </View>
         </>
       )}
+      {console.log('sadasdasd23424hey', ImageBaseUrl + giftCart?.selectedTheme?.image)}
 
       {lastStep == 3 && (
         <>
@@ -674,10 +483,10 @@ const GiftFilterScreen = ({ route }) => {
           <CartProducts data={giftCart ? [giftCart] : []} isGift={true} />
 
           <Image
-            source={require('../assets/giftCard.png')}
-            style={{ width: '91%', marginTop: 20, alignSelf: 'center' }}
+            // source={require('../assets/giftCard.png')}
+            source={giftCart?.selectedTheme?.image ? { uri: `${ImageBaseUrl}${giftCart?.selectedTheme?.image}` } : require('../assets/giftCard.png')}
+            style={{ width: "90%", marginTop: 20, alignSelf: 'center', height: 200 }}
             borderRadius={10}
-            resizeMode='contain'
           />
           <CheckoutScreen isHeader={false} />
         </View>

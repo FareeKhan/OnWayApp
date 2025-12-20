@@ -32,6 +32,7 @@ import { useDispatch } from 'react-redux';
 import { addProductToCart } from '../redux/ProductAddToCart';
 import ScreenLoader from '../components/ScreenLoader';
 import { addGiftProductToCart } from '../redux/GiftData';
+import { showMessage } from 'react-native-flash-message';
 
 const ProductDetail = ({ route }) => {
   const { t } = useTranslation();
@@ -41,7 +42,7 @@ const ProductDetail = ({ route }) => {
 
   const [counter, setCounter] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState([]);
-  const [productData, setProductData] = useState([]);
+  const [productData, setProductData] = useState();
   const [suggestedMessages, setSuggestedMessages] = useState([]);
 
   const [selectedFilter, setSelectedFilter] = useState('customizeItem');
@@ -62,6 +63,7 @@ const ProductDetail = ({ route }) => {
     setIsLoader(true)
     try {
       const result = await fetchProductDetails(id)
+      console.log('resultresultresult', result)
       if (result?.success) {
         setProductData(result?.data)
       }
@@ -71,6 +73,7 @@ const ProductDetail = ({ route }) => {
       setIsLoader(false)
     }
   }
+  console.log('asdaklsdlkjasjkldas', productData?.restaurant?.name)
   const loadSuggestedMsgs = async () => {
     try {
       const result = await fetchSuggestedMsgs(restaurant_id)
@@ -93,7 +96,13 @@ const ProductDetail = ({ route }) => {
   };
 
   const ExtraDataItems = () => {
-    return productData?.product_extras?.map((item, index) => (
+
+    const extras = productData?.product_extras
+      ? Array.isArray(productData.product_extras)
+        ? productData.product_extras
+        : [productData.product_extras]
+      : [];
+    return extras?.map((item, index) => (
       <TouchableOpacity
         key={index}
         style={styles.extraItem}
@@ -128,6 +137,18 @@ const ProductDetail = ({ route }) => {
   };
 
   const addToCart = () => {
+
+    if (rcvrNameOnSticker == '') {
+      setSelectedFilter('customizeSticker')
+      showMessage({
+        type: "warning",
+        message: t('pleaseEnterStickerName')
+      })
+      return
+    }
+
+
+
     const quantity = Number(counter)
     const price = Number(productData?.price)
     const data = {
@@ -143,12 +164,22 @@ const ProductDetail = ({ route }) => {
       msgForReceiver: msgForReceiver,
       restaurantId: productData?.restaurant_id,
       categoryId: productData?.category_id,
+      restData: productData?.restaurant,
     }
     dispatch(addProductToCart(data))
     navigation.navigate('BasketScreen')
   }
 
   const giftFun = () => {
+
+    if (rcvrNameOnSticker == '') {
+      setSelectedFilter('customizeSticker')
+      showMessage({
+        type: "warning",
+        message: t('pleaseEnterStickerName')
+      })
+      return
+    }
     const quantity = Number(counter)
     const price = Number(productData?.price)
     const data = {
@@ -312,7 +343,9 @@ const ProductDetail = ({ route }) => {
                     }}
                   >
                     <CustomText numberOfLines={1} style={{ fontSize: 10 }}>
-                      Parkero Shop
+
+
+                      {productData?.restaurant?.name || 'Parkero Shop'}
                     </CustomText>
                     <CustomText
                       numberOfLines={2}

@@ -30,16 +30,16 @@ import { initializePaymentSheet, openPaymentSheet } from '../constants/helper';
 const CheckoutScreen = ({ isHeader = true, route }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch()
-  const cartData = useSelector((state) => state?.cart?.cartProducts)
+  const baseketData = useSelector((state) => state?.cart?.cartProducts)
+
   const token = useSelector((state) => state?.auth?.loginData?.token)
   const userData = useSelector((state) => state?.auth?.loginData)
-    const userId = useSelector((state) => state?.auth?.loginData?.id)
-  
+  const userId = useSelector((state) => state?.auth?.loginData?.id)
   const giftCartData = useSelector((state) => state?.giftInfo?.giftProduct)
-
-
   const resID = useSelector((state) => state?.cart?.restaurentID)
-  const { driverNote,discount  } = route?.params || ''
+  const cartData = baseketData?.filter((item) => item?.restaurantId == resID)
+
+  const { driverNote, discount } = route?.params || ''
 
   const navigation = useNavigation();
   const [selectedPayment, setSelectedPayment] = useState(3);
@@ -51,9 +51,9 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   const [isOrderLoader, setIsOrderLoader] = useState(false);
 
   const paymentData = paymentCards(t);
-//  const finalPrice = subTotal || giftCartData?.price * giftCartData?.counter
+  //  const finalPrice = subTotal || giftCartData?.price * giftCartData?.counter
   const subTotal = cartData?.reduce((sum, item) => sum + (item?.price * item?.counter || 0), 0) - discount
- const finalPrice = subTotal || giftCartData?.price * giftCartData?.counter
+  const finalPrice = subTotal || giftCartData?.price * giftCartData?.counter
   const PickUpTimeBox = () => {
     return (
       <View style={styles.pickupContainer}>
@@ -142,12 +142,17 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
     const payMethod = selectedPayment == 1 ? "apple_pay" : selectedPayment == 2 ? 'card' : 'wallet'
     try {
       const response = await makeOrder(cartData, resID, token, driverNote, selectedCarId, finalPrice, userData?.phoneNo, payMethod)
-   console.log('dasdasd',response)
+      console.log('....//', response)
       if (response?.success) {
         navigation.navigate('SuccessfulScreen')
         dispatch(clearCart())
+      } else {
+        showMessage({
+          type: "danger",
+          message: response?.message || 'Insufficient wallet balance'
+        })
       }
-      console.log('response', response)
+
     } catch (error) {
       console.log('error', error)
       showMessage({
@@ -160,16 +165,24 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   }
 
   const processGiftOrder = async () => {
-        if (!userId) {
-          showMessage({
-            type: "danger",
-            message: t('PleaseLoginFirst')
-          })
-          return
-        }
+    if (!userId) {
+      showMessage({
+        type: "danger",
+        message: t('PleaseLoginFirst')
+      })
+      return
+    }
+
+   if (selectedCarId == '') {
+        showMessage({
+          type: "danger",
+          message: t("pleaseSelectCar")
+        })
+        return
+      }
     setIsOrderLoader(true)
     try {
-      const response = await makeGiftOrder(giftCartData, token)
+      const response = await makeGiftOrder(giftCartData, token,selectedCarId,finalPrice,selectedPayment)
       console.log('responsare', response)
       if (response?.success) {
         navigation.navigate('SuccessfulScreen')
@@ -230,19 +243,17 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
           <PickUpTimeBox />
 
           <View style={{ marginHorizontal: -20 }}>
-            <CartProducts />
+            <CartProducts data={cartData} />
           </View>
 
         </>
       )}
 
 
-      {isHeader &&
 
         <View style={{ borderTopWidth: 1, borderBottomWidth: 1, paddingTop: 20, paddingBottom: 15, marginTop: 10, borderColor: colors.gray9 }}>
           <AddBrandedCar setSelectedCarId={setSelectedCarId} selectedCarId={selectedCarId} />
         </View>
-      }
 
       <HeaderWithAll title={t('payWith')} style={{ marginTop: 25 }} />
       <View style={styles.paymentList}>
@@ -275,7 +286,7 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
       </View>
 
       <HeaderWithAll title={t('paymentSummary')} />
-      <KeyValue leftValue={t('Subtotal')} rightValue={finalPrice}/>
+      <KeyValue leftValue={t('Subtotal')} rightValue={finalPrice} />
       <KeyValue
         leftValue={t('ServiceFee')}
         rightValue={'0.00'}

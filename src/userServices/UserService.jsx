@@ -1,5 +1,6 @@
 import axios from "axios";
 import { baseUrl, ImageBaseUrl, mainUrl } from "../constants/data";
+import { showMessage } from "react-native-flash-message";
 
 
 export const loginPhoneNo = async (phoneNo) => {
@@ -186,6 +187,9 @@ export const fetchRestaurentList = async (id) => {
     }
 };
 
+
+
+
 export const fetchTheme = async (id) => {
     console.log('--->dasdasd>>', id)
     try {
@@ -205,41 +209,30 @@ export const fetchTheme = async (id) => {
 };
 
 
+export const NearByRest = async (data) => {
 
-// export const makeOrder = async (data, token) => {
-//     console.log('datadata',data)
-//     const postData = JSON.stringify({
-//         "restaurant_id": 3,
-//         "vehicle_id": 5,
-//         "order_type": "standard",
-//         "items": data,
-//         "payment_type": "card",
-//         "subtotal": 25.98,
-//         "delivery_fee": 0,
-//         "service_fee": 2,
-//         "total": 27.98,
-//         "customer_phone": "+1234567890",
-//         "special_instructions": "consequatur",
-//         "gift_from": "consequatur",
-//         "gift_message": "consequatur",
-//         "gift_theme": "consequatur"
-//     })
-//     try {
-//         const response = await axios.post(
-//             `${baseUrl}orders`,
-//             postData,
-//             {
-//                 headers: {
-//                     Accept: 'application/json',
-//                     Authorization: `Bearer ${token}`,
-//                 },
-//             }
-//         );
-//         return response.data;
-//     } catch (e) {
-//         console.log(e?.response?.data || e.message);
-//     }
-// };
+    try {
+        const response = await axios.get(
+            `${baseUrl}restaurants/nearby`,
+            {
+                params: {
+                    lat: Number(data.lat),
+                    lng: Number(data.lng),
+                    radius: 50,
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+            }
+        );
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+}
+
+
 
 // ***************** ORDER APIS
 
@@ -282,7 +275,13 @@ export const makeOrder = async (data, resID, token, driverNote, selectedCarId, s
         );
         return response.data;
     } catch (e) {
-        console.log(e?.response?.data || e.message);
+        console.log('===', e?.response?.data?.message);
+        console.log('ssss', e)
+        // showMessage({
+        //     type: "danger",
+        //     message: e?.response?.data?.message || "Insufficient wallet balance "
+        // })
+
     }
 };
 
@@ -464,23 +463,67 @@ export const deleteVehicles = async (id, token) => {
 };
 
 // ++++++
-export const makeGiftOrder = async (data, token) => {
-    console.log('dasdasdas')
+export const makeGiftOrder = async (data, token, selectedCarId, finalPrice, selectedPayment) => {
+
     const themeImage = ImageBaseUrl + data?.selectedTheme?.image
     // Create FormData
     const value =
         data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number
         ?? data?.selectedContacts?.[0]?.givenName
         ?? '';
-    const formData = new FormData();
-    formData.append('gift_item', data?.title);
-    formData.append('gift_message', data?.selectedMsg);
-    formData.append('gift_theme', themeImage);
-    formData.append('recipient_name', data?.cardName || 'no Name');
-    formData.append('recipient_phone', data?.selectedContacts?.[0]?.phoneNumbers ? data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number
-        : String(data?.selectedContacts?.[0]?.givenName)
-        || '0556090234');
-    formData.append('recipient_address', 'kjhdasd');
+    const productArray = [
+        {
+            "item_id": data?.id,
+            "name": data?.title,
+            "price": data?.price,
+            "quantity": data?.counter,
+            "image": data?.image
+
+        }
+    ]
+
+    console.log('productArrayproductArray', data)
+
+    //     const formData = new FormData();
+    //     formData.append('gift_item', data?.title);
+    //     formData.append('gift_message', data?.selectedMsg);
+    //     formData.append('gift_theme', themeImage);
+    //     formData.append('recipient_name', data?.cardName || 'no Name');
+    //    formData.append('products', JSON.stringify(productArray));
+    //     formData.append('payment_type', 'wallet')
+
+    //     formData.append('restaurant_id', data?.restaurantId)
+
+    //     formData.append('subtotal', '11')
+    //     formData.append('total', '22')
+    //     formData.append('vehicle_id','6')
+
+
+    const payload = {
+        gift_item: data?.title,
+        gift_message: data?.selectedMsg,
+        gift_theme: themeImage,
+        recipient_name: data?.cardName || 'no Name',
+        recipient_phone: data?.selectedContacts?.[0]?.phoneNumbers ? data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number
+            : String(data?.selectedContacts?.[0]?.givenName)
+            || '0556090234',
+        products: productArray, // raw array
+        payment_type: selectedPayment == 1 ? 'apple_pay' : selectedPayment == 2 ? "card" : 'wallet',
+        restaurant_id: data?.restaurantId,
+        subtotal: finalPrice,
+        total: finalPrice,
+        vehicle_id: selectedCarId
+    };
+
+    console.log('payloadpayload===>>', payload)
+
+
+
+
+    // formData.append('recipient_phone', data?.selectedContacts?.[0]?.phoneNumbers ? data?.selectedContacts?.[0]?.phoneNumbers?.[0]?.number
+    //     : String(data?.selectedContacts?.[0]?.givenName)
+    //     || '0556090234');
+    // formData.append('recipient_address', 'kjhdasd');
 
     // Example for adding an image/file (if needed)
     // formData.append('gift_image', data?.imageFile);
@@ -488,7 +531,7 @@ export const makeGiftOrder = async (data, token) => {
     try {
         const response = await axios.post(
             `${baseUrl}gifts`,
-            formData,
+            payload,
             {
                 headers: {
                     Accept: 'application/json',
@@ -551,11 +594,35 @@ export const giftRcvd = async (token) => {
                 },
             }
         );
+        console.log('dasds')
         return response.data;
     } catch (e) {
         console.log(e?.response?.data || e.message);
     }
 };
+
+export const giftWalletUpdate = async (data,userId) => {
+    const dataFormate = {
+        "customer_id":userId,
+        "amount": data?.products[0]?.price * data?.products[0]?.quantity
+    }
+    try {
+        const response = await axios.post(
+            `${baseUrl}wallet/update-balance`,
+            dataFormate,
+            {
+                headers: {
+                    Accept: 'application/json',
+                },
+            }
+        );
+        console.log('dasds')
+        return response.data;
+    } catch (e) {
+        console.log(e?.response?.data || e.message);
+    }
+};
+
 
 
 
