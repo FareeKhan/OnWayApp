@@ -34,6 +34,7 @@ import EmptyData from '../components/EmptyData';
 import { showMessage } from 'react-native-flash-message';
 import { useDispatch, useSelector } from 'react-redux';
 import { addAddress, addressData, removeAddress } from '../redux/addressData';
+import MapViewComp from '../components/MapViewComp';
 
 const { width, height } = Dimensions.get('screen');
 
@@ -64,6 +65,10 @@ const HomeScreen = () => {
     fetchUserCurrentLocation()
   }, [])
 
+  const currentAddress = {
+    latitude: longitude,
+    longitude: longitude
+  }
 
   // useEffect(() => {
   //   if (selectedView == 'MapView') {
@@ -147,7 +152,6 @@ const HomeScreen = () => {
         lng: longitude,
       }
       const result = await NearByRest(data);
-      console.log('latitute', latitute, longitude)
       if (result?.success && result?.data?.data?.length != 0) {
         setNearByRestaurent(result?.data?.data)
         setSelectedView('ListView')
@@ -247,7 +251,6 @@ const HomeScreen = () => {
     );
   };
 
-
   const ListView = () => {
     return (
       <View>
@@ -314,54 +317,54 @@ const HomeScreen = () => {
     );
   };
 
-  const MapViewComp = () => {
-    return (
-      <View style={styles.mapViewContainer}>
-        <View style={styles.mapWrapper}>
-          {/* <MapView
-            initialRegion={{
-              latitude: latitute || 25.2048,
-              longitude: longitude || 55.2708,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-            style={styles.map}
-          /> */}
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            initialRegion={{
-              latitude: Number(address?.latitude) || 25.2048,
-              longitude: Number(address?.longitude) || 55.2708,
-            }}
-          >
-            {restaurantsByCategory?.restaurants?.map((item, index) => (
-              <Marker
-                key={item.id || index}
-                coordinate={{
-                  latitude: item.latitude,
-                  longitude: item.longitude,
-                }}
-                title={item.name}
-                description={item.location}
-              />
-            ))}
-          </MapView>
-        </View>
+  // const MapViewComp = () => {
+  //   return (
+  //     <View style={styles.mapViewContainer}>
+  //       <View style={styles.mapWrapper}>
+  //         {/* <MapView
+  //           initialRegion={{
+  //             latitude: latitute || 25.2048,
+  //             longitude: longitude || 55.2708,
+  //             latitudeDelta: 0.0922,
+  //             longitudeDelta: 0.0421,
+  //           }}
+  //           style={styles.map}
+  //         /> */}
+  //         <MapView
+  //           ref={mapRef}
+  //           style={styles.map}
+  //           initialRegion={{
+  //             latitude: Number(address?.latitude) || 25.2048,
+  //             longitude: Number(address?.longitude) || 55.2708,
+  //           }}
+  //         >
+  //           {restaurantsByCategory?.restaurants?.map((item, index) => (
+  //             <Marker
+  //               key={item.id || index}
+  //               coordinate={{
+  //                 latitude: item.latitude,
+  //                 longitude: item.longitude,
+  //               }}
+  //               title={item.name}
+  //               description={item.location}
+  //             />
+  //           ))}
+  //         </MapView>
+  //       </View>
 
-        <View style={styles.mapListOverlay}>
-          <FlatList
-            data={nearByRestaurent?.length > 0 ? nearByRestaurent : restaurantsByCategory?.restaurants}
-            keyExtractor={(_, index) => index?.toString()}
-            renderItem={renderItem}
-            contentContainerStyle={styles.horizontalList}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          />
-        </View>
-      </View>
-    );
-  };
+  //       <View style={styles.mapListOverlay}>
+  //         <FlatList
+  //           data={nearByRestaurent?.length > 0 ? nearByRestaurent : restaurantsByCategory?.restaurants}
+  //           keyExtractor={(_, index) => index?.toString()}
+  //           renderItem={renderItem}
+  //           contentContainerStyle={styles.horizontalList}
+  //           horizontal
+  //           showsHorizontalScrollIndicator={false}
+  //         />
+  //       </View>
+  //     </View>
+  //   );
+  // };
 
   const fetchUserCurrentLocation = async () => {
     try {
@@ -370,7 +373,6 @@ const HomeScreen = () => {
         Geolocation.getCurrentPosition(async (position) => {
           const { longitude, latitude } = position.coords
           const addressData = await getAddressFromCoordinates(longitude, latitude)
-          console.log('testingAddress', address?.formattedAddress)
           if (address?.length == 0) {
             dispatch(addAddress(addressData))
           }
@@ -394,17 +396,32 @@ const HomeScreen = () => {
     }
   }
 
+  const handleMapListButton = (value) => {
+    // setSelectedView(selectedView == 'ListView' ? 'MapView' : "ListView")
+    // if (selectedView == 'MapView') {
+    //   navigation.getParent()?.setOptions({
+    //     tabBarStyle: 'none',
+    //   });
+    // }
+    // navigation.getParent()?.setOptions({
+    //   tabBarStyle: { display: 'flex' },
+    // });
+    navigation.getParent()?.setOptions({
+      tabBarStyle: { display: 'none' },
+    });
+    setSelectedView('MapView')
 
-
-  if (isLoader) {
-    return (
-      <ScreenLoader />
-    )
   }
+
+  // if (isLoader) {
+  //   return (
+  //     <ScreenLoader />
+  //   )
+  // }
 
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={[{ flex: 1 }, selectedView == "MapView" && { marginTop: -70 }]}>
       <ScreenView scrollable={true} mh={selectedView == 'MapView'}>
         <HeaderBox style={selectedView == 'MapView' && { paddingHorizontal: 20 }} onlyLogo={selectedView == 'Home'} onPressBack={() => { setNearByRestaurent([]), setSelectedView('Home') }} />
 
@@ -448,11 +465,17 @@ const HomeScreen = () => {
         }
       </ScreenView>
 
-      {selectedView == 'MapView' && <MapViewComp />}
+      {selectedView == 'MapView' &&
+        <MapViewComp
+          data={nearByRestaurent?.length > 0 ? nearByRestaurent : restaurantsByCategory?.restaurants}
+          setIsListingView={setSelectedView}
+          currentAddress={currentAddress}
+        />}
       <>
         {selectedView !== 'Home' && listViewData?.length > 0 && (
           <CustomButton
-            onPress={() => setSelectedView(selectedView == 'ListView' ? 'MapView' : "ListView")}
+            // onPress={() => setSelectedView(selectedView == 'ListView' ? 'MapView' : "ListView")}
+            onPress={handleMapListButton}
             title={selectedView == 'ListView' ? t('mapView') : t('listView')}
             style={[styles.bottomBtn, selectedView == 'MapView' && { width: "70%", height: 50 }]}
           />

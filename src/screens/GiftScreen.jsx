@@ -3,11 +3,10 @@ import {
   I18nManager,
   Image,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import ScreenView from '../components/ScreenView';
 import HeaderBox from '../components/HeaderBox';
 import CustomText from '../components/CustomText';
@@ -16,18 +15,21 @@ import { fonts } from '../constants/fonts';
 import CustomButton from '../components/CustomButton';
 import FilterButton from '../components/FilterButton';
 import EmptyData from '../components/EmptyData';
-import { currency, SentGiftsData } from '../constants/data';
+import { currency, mainUrl } from '../constants/data';
 import { colors } from '../constants/colors';
 import DividerLine from '../components/DividerLine';
 import GiftImage from '../components/GiftImage';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { fetchSendGifts, fetchSentGifts, giftRcvd, giftWalletUpdate, removeGiftData } from '../userServices/UserService';
-import { useSelector } from 'react-redux';
+import { fetchSendGifts, giftRcvd, giftWalletUpdate, removeGiftData } from '../userServices/UserService';
+import { useDispatch, useSelector } from 'react-redux';
 import { showMessage } from 'react-native-flash-message';
 import ScreenLoader from '../components/ScreenLoader';
-import ButtonLoader from '../components/ButtonLoader';
+import RenderReceivedGiftsData from '../components/RenderReceivedGiftsData';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import RemoteImage from '../components/RemoteImage';
+import { addProductToCart, clearCart } from '../redux/ProductAddToCart';
 
 const { height } = Dimensions.get('screen');
 
@@ -35,6 +37,7 @@ const GiftScreen = () => {
   const navigation = useNavigation()
   const token = useSelector((state) => state.auth.loginData?.token)
   const userId = useSelector((state) => state.auth.loginData?.id)
+  const dispatch = useDispatch()
 
 
   const { t } = useTranslation();
@@ -54,7 +57,6 @@ const GiftScreen = () => {
   const getSentGifts = async () => {
     try {
       const result = await fetchSendGifts(token);
-      console.log('resultresult', result)
       if (result?.success) {
         setSendGiftData(result?.data?.data)
       }
@@ -62,21 +64,27 @@ const GiftScreen = () => {
       console.log(e);
     }
   };
-  const deleteGift = async (id, isRcvr) => {
+
+  const deleteGift = async (id, value) => {
     setDeleteLoader(true)
     try {
-      const result = await removeGiftData(49, token);
+      const result = await removeGiftData(id, token);
       if (result?.success) {
+        if (value === true || value === 'update') {
+          const updated = await giftRcvd(token);
+          setIsShowSenderDetail('')
+          if (updated?.success) {
+            setReceivedGiftData(updated?.data?.data?.length > 0 ? updated.data.data : []);
+          }
+        } else {
+          getSentGifts()
+        }
         {
-          isRcvr ?
-            rcvdGift()
-            :
-            getSentGifts()
-          showMessage({
-            type: "success",
-            message: t('GiftDeleted')
-          })
-
+          value !== 'update' &&
+            showMessage({
+              type: "success",
+              message: t('GiftDeleted')
+            })
         }
 
       }
@@ -103,8 +111,8 @@ const GiftScreen = () => {
   const updateWallet = async () => {
     try {
       const result = await giftWalletUpdate(isShowSenderDetail, userId);
-      console.log('result-->>>', result)
       if (result?.success) {
+                deleteGift(isShowSenderDetail?.id, 'update')
         showMessage({
           type: "success",
           message: t('Balance added to Wallet')
@@ -117,10 +125,7 @@ const GiftScreen = () => {
     }
   };
 
-
-
   const RenderSendGiftsData = () => {
-
     if (sendGiftData?.length == 0) {
       return (
         <EmptyData title={t('NoGiftFound')} />
@@ -133,7 +138,7 @@ const GiftScreen = () => {
           <View style={styles.cardHeader}>
             <View>
               <CustomText style={styles.productName}>
-                {item?.gift_item}  {currency} {item?.products[0]?.price}
+                {item?.gift_item}  {currency} {item?.products[0]?.price} x {item?.products[0]?.quantity}
               </CustomText>
               {/* <CustomText style={styles.productPrice}>
                 {currency} {item?.price}
@@ -199,47 +204,31 @@ const GiftScreen = () => {
     });
   };
 
-  const RenderReceivedGiftsData = () => {
-    return receivedGiftData?.map((item, index) => {
-      return (
-        <View key={item}>
-          {isReceiverSender == index ? (
-            <GiftImage
-              handleHidePress={() => setIsReceiverSender(null)}
-              onPress={() => setIsReceiverSender(null)}
-              imagePath={item?.gift_theme ? { uri: item?.gift_theme } : require('../assets/giftMSg.png')}
-              label={item?.gift_message}
-              style={styles.receivedGiftImage}
-              senderName={item?.sender?.phone_number}
-            />
-          ) : (
-            <GiftImage />
-          )}
+  const addToCart = () => {
+    dispatch(clearCart());
+    {
+      const data = {
+        id: isShowSenderDetail?.products[0]?.item_id,
+        title: isShowSenderDetail?.gift_item,
+        description: isShowSenderDetail?.description || 'description',
+        counter: Number(isShowSenderDetail?.products[0]?.quantity),
+        price: Number(isShowSenderDetail?.products[0]?.price),
+        image: `${isShowSenderDetail?.products[0]?.image}`,
+        extraItem: isShowSenderDetail?.selectedExtras || [],
+        productNotes: isShowSenderDetail?.productNotes || 'productNotes',
+        nameOnSticker: receivedGiftData?.recipient_name,
+        msgForReceiver: receivedGiftData?.gift_message,
+        restaurantId: isShowSenderDetail?.order?.restaurant_id,
+        categoryId: isShowSenderDetail?.categoryId,
+        restData: isShowSenderDetail?.order?.restaurant,
+        isGift: true
+      }
+      console.log('data===', data)
 
-          <View style={styles.receivedButtonsRow}>
-            {isReceiverSender !== index && (
-              <CustomButton
-                onPress={() => setIsReceiverSender(index)}
-                title={t('showSender')}
-                style={styles.receiverSenderButton}
-                btnTxtStyle={styles.receiverSenderBtnText}
-              />
-            )}
-
-            <CustomButton
-              title={t('showAllDetails')}
-              onPress={() => setIsShowSenderDetail(item)}
-              style={[
-                styles.receiverSenderButton,
-                isReceiverSender == index && styles.receiverSenderShift,
-              ]}
-              btnTxtStyle={styles.receiverSenderBtnText}
-            />
-          </View>
-        </View>
-      );
-    });
-  };
+      dispatch(addProductToCart(data))
+    }
+    navigation.navigate('BasketScreen')
+  }
 
   const ShowAllDetails = () => {
     const InfoData = ({ label, value }) => {
@@ -255,9 +244,84 @@ const GiftScreen = () => {
         </View>
       );
     };
-    console.log('ppppp', isShowSenderDetail?.products[0]?.image)
+
     return (
       <View>
+
+        {/* <GiftImage /> */}
+        <View style={styles.secondGiftWrapper}>
+          <View style={{ position: "absolute", zIndex: 999, bottom: 50 }}>
+            <View style={{ marginTop: 30, marginLeft: 20, flexDirection: "row", gap: 10, alignItems: "center" }}>
+              <MaterialIcons name={'flip'} size={18} color={colors.white} />
+              <CustomText style={{ color: colors.white, fontFamily: fonts.bold, fontSize: 10 }}>{t('backflip')}</CustomText>
+            </View>
+          </View>
+
+
+
+          <GiftImage
+            imagePath={isShowSenderDetail?.gift_theme}
+            // label={isShowSenderDetail?.gift_message}
+            style={styles.secondGiftImage}
+            item={isShowSenderDetail}
+            // senderName={true}
+            setIsShowDetails={setIsShowDetails}
+            // rcptName={isShowSenderDetail?.recipient_name}
+            handleHidePress={() => setIsShowSenderDetail('')}
+
+          />
+          {/* <TouchableOpacity
+          onPress={onPress ? onPress : () => setIsShowDetails(null)}
+          activeOpacity={1}
+          style={{
+            shadowColor: '#00000090',
+            shadowOffset: {
+              width: 0,
+              height: 3,
+            },
+            shadowOpacity: 0.15,
+            shadowRadius: 1.5,
+            elevation: 7,
+            backgroundColor: '#fff',
+            paddingLeft: 10,
+            borderBottomLeftRadius: 10,
+            borderBottomRightRadius: 10,
+            paddingTop: 20,
+            paddingBottom: 10,
+            zIndex: -100,
+          }}
+        >
+          <CustomText style={{ fontSize: 15, color: colors.primary }}>
+            {receiver ? t('receiver') : t('sender')}  : {senderName}{' '}
+          </CustomText>
+        </TouchableOpacity> */}
+          <TouchableOpacity style={styles.shareGiftBtn}>
+            <EvilIcons name={'share-google'} size={25} color={colors.black} />
+            <CustomText style={styles.shareGiftText}>
+              {t('shareGift')}
+            </CustomText>
+          </TouchableOpacity>
+        </View>
+
+        {
+
+          <View style={{ flexDirection: "row", borderWidth: 1, borderColor: colors.gray, paddingVertical: 10, borderRadius: 10, paddingHorizontal: 10, marginBottom: 10 }}>
+            <CustomText style={{ color: colors.primary, fontFamily: fonts.bold, }}>{t("Message") + ": "}</CustomText>
+            <CustomText style={{ color: colors.primary, width: "80%", }}>  {isShowSenderDetail?.gift_message ?? t('noMsg')}</CustomText>
+          </View>
+        }
+
+
+        <View style={{ flexDirection: "row", gap: 5, alignItems: "center", borderWidth: 1, borderColor: colors.gray, paddingVertical: 10, borderRadius: 10, paddingHorizontal: 10, marginBottom: 10 }}>
+
+          <RemoteImage
+            uri={`${mainUrl}${isShowSenderDetail?.order?.restaurant?.logo}`}
+            style={{ width: 40, height: 40, }}
+          />
+          <CustomText style={{ color: colors.primary, }}>{isShowSenderDetail?.order?.restaurant?.name}</CustomText>
+        </View>
+
+
         <View style={styles.rcvrOuterBox}>
           <View style={styles.rcvrDetail}>
             <View style={styles.productInfo}>
@@ -281,6 +345,7 @@ const GiftScreen = () => {
               title={t('addItemCart')}
               style={styles.addItemCartBtn}
               btnTxtStyle={styles.smallBtnText}
+              onPress={addToCart}
             />
 
             <CustomButton
@@ -292,24 +357,7 @@ const GiftScreen = () => {
           </View>
         </View>
 
-        {/* <GiftImage /> */}
-        <View style={styles.secondGiftWrapper}>
-          <GiftImage
-            imagePath={{ uri: isShowSenderDetail?.gift_theme }}
-            label={isShowSenderDetail?.gift_message}
-            style={styles.secondGiftImage}
-            senderName={isShowSenderDetail?.sender?.phone_number}
-            setIsShowDetails={setIsShowDetails}
 
-          />
-
-          <TouchableOpacity style={styles.shareGiftBtn}>
-            <EvilIcons name={'share-google'} size={25} color={colors.black} />
-            <CustomText style={styles.shareGiftText}>
-              {t('shareGift')}
-            </CustomText>
-          </TouchableOpacity>
-        </View>
 
         {/* <View style={styles.infoList}>
           <InfoData label={t('sentData')} value={'1-8-2025 | 08:00AM'} />
@@ -317,27 +365,32 @@ const GiftScreen = () => {
         </View> */}
 
         <View style={styles.bottomRow}>
-          <CustomButton
+          {/* <CustomButton
             title={t('back')}
             onPress={() => setIsShowSenderDetail('')}
             style={[styles.addItemCartBtn, { width: "22%" }]}
             btnTxtStyle={styles.smallBtnText}
-          />
+          /> */}
 
-          <TouchableOpacity onPress={() => deleteGift(isShowSenderDetail?.id, true)}>
-            <CustomText style={styles.deleteHistoryText}>
-              {t('deleteFromHistory')}
-            </CustomText>
-          </TouchableOpacity>
+
+          {
+            deleteLoader ?
+              <ScreenLoader type={1} /> :
+              <TouchableOpacity onPress={() => deleteGift(isShowSenderDetail?.id, true)}>
+                <CustomText style={styles.deleteHistoryText}>
+                  {t('deleteFromHistory')}
+                </CustomText>
+              </TouchableOpacity>
+          }
+
         </View>
       </View>
     );
   };
 
-
   return (
     <ScreenView scrollable={true}>
-      <HeaderBox logo={true} />
+      <HeaderBox logo={true} isShowBackBtn={false} />
       <CustomText style={styles.giftsTitle}>{t('gifts')}</CustomText>
 
       <CustomButton
@@ -356,13 +409,15 @@ const GiftScreen = () => {
       ) : isShowSenderDetail ? (
         <ShowAllDetails />
       ) : (
-        <RenderReceivedGiftsData />
+        <RenderReceivedGiftsData
+          setIsReceiverSender={setIsReceiverSender}
+          data={receivedGiftData}
+          isReceiverSender={isReceiverSender}
+          setIsShowSenderDetail={setIsShowSenderDetail}
+          isShowSenderDetail={isShowSenderDetail}
+        />
       )}
 
-
-      {/* { (
-        <EmptyData title={t('noGift')} style={styles.emptyData} />
-      )} */}
     </ScreenView>
   );
 };

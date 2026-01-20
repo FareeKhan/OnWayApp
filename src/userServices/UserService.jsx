@@ -512,7 +512,9 @@ export const makeGiftOrder = async (data, token, selectedCarId, finalPrice, sele
         restaurant_id: data?.restaurantId,
         subtotal: finalPrice,
         total: finalPrice,
-        vehicle_id: selectedCarId
+        // vehicle_id: selectedCarId
+                vehicle_id: 20
+
     };
 
     console.log('payloadpayload===>>', payload)
@@ -594,7 +596,6 @@ export const giftRcvd = async (token) => {
                 },
             }
         );
-        console.log('dasds')
         return response.data;
     } catch (e) {
         console.log(e?.response?.data || e.message);
@@ -616,7 +617,6 @@ export const giftWalletUpdate = async (data,userId) => {
                 },
             }
         );
-        console.log('dasds')
         return response.data;
     } catch (e) {
         console.log(e?.response?.data || e.message);

@@ -3,9 +3,9 @@ import React from 'react'
 import { fonts } from '../constants/fonts'
 import { colors } from '../constants/colors'
 
-const CustomText = ({style,children,...props}) => {
+const CustomText = ({style,children,numberOfLines,...props}) => {
   return (
-      <Text  style={[styles.txtStyle,style]}  {...props}>{children}</Text>
+      <Text  style={[styles.txtStyle,style]} numberOfLines={numberOfLines} {...props}>{children}</Text>
   )
 }
 

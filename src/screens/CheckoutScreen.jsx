@@ -114,15 +114,23 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   };
 
   const handleCheckOutBtn = () => {
-    if (isHeader) {
-      if (selectedCarId == '') {
-        showMessage({
-          type: "danger",
-          message: t("pleaseSelectCar")
-        })
-        return
-      }
+
+    if (!userId) {
+      showMessage({
+        type: "danger",
+        message: t('PleaseLoginFirst')
+      })
+      return
     }
+    // if (selectedCarId == '' && isHeader) {
+      // if (selectedCarId == '') {
+      //   showMessage({
+      //     type: "danger",
+      //     message: t("pleaseSelectCar")
+      //   })
+      //   return
+      // }
+    // }
 
     if (selectedPayment == 2 || selectedPayment == 1) {
       openPaymentSheet(loading, processOrder)
@@ -138,6 +146,15 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
   }
 
   const processOrder = async () => {
+
+          if (selectedCarId == '') {
+        showMessage({
+          type: "danger",
+          message: t("pleaseSelectCar")
+        })
+        return
+      }
+
     setIsOrderLoader(true)
     const payMethod = selectedPayment == 1 ? "apple_pay" : selectedPayment == 2 ? 'card' : 'wallet'
     try {
@@ -173,16 +190,16 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
       return
     }
 
-   if (selectedCarId == '') {
-        showMessage({
-          type: "danger",
-          message: t("pleaseSelectCar")
-        })
-        return
-      }
+    // if (selectedCarId == '') {
+    //   showMessage({
+    //     type: "danger",
+    //     message: t("pleaseSelectCar")
+    //   })
+    //   return
+    // }
     setIsOrderLoader(true)
     try {
-      const response = await makeGiftOrder(giftCartData, token,selectedCarId,finalPrice,selectedPayment)
+      const response = await makeGiftOrder(giftCartData, token, selectedCarId, finalPrice, selectedPayment)
       console.log('responsare', response)
       if (response?.success) {
         navigation.navigate('SuccessfulScreen')
@@ -249,11 +266,15 @@ const CheckoutScreen = ({ isHeader = true, route }) => {
         </>
       )}
 
-
-
+      {
+        isHeader &&
         <View style={{ borderTopWidth: 1, borderBottomWidth: 1, paddingTop: 20, paddingBottom: 15, marginTop: 10, borderColor: colors.gray9 }}>
           <AddBrandedCar setSelectedCarId={setSelectedCarId} selectedCarId={selectedCarId} />
         </View>
+      }
+
+
+
 
       <HeaderWithAll title={t('payWith')} style={{ marginTop: 25 }} />
       <View style={styles.paymentList}>

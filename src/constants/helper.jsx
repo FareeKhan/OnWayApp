@@ -144,3 +144,17 @@ export const openPaymentSheet = async (loading, processOrder) => {
     processOrder()
   }
 };
+
+
+// export const DEFAULT_TAB_BAR_STYLE = {
+//   position: "absolute",
+//   bottom: 20,
+//   marginHorizontal: 20,
+//   borderRadius: 18,
+//   alignItems: "center",
+//   justifyContent: "center",
+//   height: 60,
+//   borderWidth: 1,
+//   borderColor: colors.black1,
+//   paddingTop: 10,
+// };

@@ -33,6 +33,7 @@ import { addProductToCart } from '../redux/ProductAddToCart';
 import ScreenLoader from '../components/ScreenLoader';
 import { addGiftProductToCart } from '../redux/GiftData';
 import { showMessage } from 'react-native-flash-message';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 
 const ProductDetail = ({ route }) => {
   const { t } = useTranslation();
@@ -213,6 +214,7 @@ const ProductDetail = ({ route }) => {
     <View style={styles.container}>
       <ScreenView scrollable={true} mh={true} extraBottomSpace={true}>
         {/* Image Section */}
+              <KeyboardAwareScrollView>
 
         {
           isLoader &&
@@ -391,6 +393,7 @@ const ProductDetail = ({ route }) => {
               </View>
 
               <DividerLine style={styles.stickerDivider} />
+
               <CustomInput
                 label={t('nameOnSticker')}
                 placeholder={'Name'}
@@ -455,6 +458,8 @@ const ProductDetail = ({ route }) => {
             </View>
           )} */}
         </View>
+              </KeyboardAwareScrollView>
+
       </ScreenView>
 
       <View style={styles.buttonContainer}>

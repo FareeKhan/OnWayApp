@@ -20,7 +20,6 @@ export const GiftData = createSlice({
                 ...state.giftProduct,   // old values
                 ...action.payload       // new values
             };
-            console.log('---><<<>> state.giftProduct', state.giftProduct)
 
             // const existId = state.giftProduct?.find((item) => item?.id == action.payload?.id)
             // if (!existId) {

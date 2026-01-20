@@ -191,9 +191,17 @@
                   "edit": "Edit",
                   "PleaseLoginToEdit": "Please Login your account to Edit address",
 
+"freeCoffe":"Get a free coffe when you purchase 5 Coffes from the same shop",
+"CoffeAmount":"The Free Coffe amount will be added to your Wallet",
+"coffeeNote":"Note: The Free coffe value will be as the minimum purchased value",
+
 
                       
 
+"noContact":"No Contacts Found",
+  "EnterNoWithCountryCode" :"Enter Number With Country Code",
+
+  "recptName" :"Name",
 
 
                      

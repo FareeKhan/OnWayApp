@@ -24,7 +24,7 @@ import RNRestart from 'react-native-restart';
 import { language } from '../redux/Auth';
 import { productFavorite, removeFavorite } from '../redux/AddFavorite';
 
-const HeaderBox = ({ style, productData, onPressBack, onlyLogo, smallLogo = true, fullWidth, heart, title, innerStyle }) => {
+const HeaderBox = ({ style, productData, onPressBack, onlyLogo, isShowBackBtn=true,smallLogo = true, fullWidth, heart, title, innerStyle }) => {
   const { t } = useTranslation();
   const [isHeart, setIsHeart] = useState(false)
   const favoriteData = useSelector((state) => state?.favorite?.AddInFavorite)
@@ -49,7 +49,7 @@ const HeaderBox = ({ style, productData, onPressBack, onlyLogo, smallLogo = true
       }))
     }
 
-  },[isCheckData, productData])
+  }, [isCheckData, productData])
   // onPress={()=>setIsHeart(!isHeart)}
   return (
     <View style={style}>
@@ -66,13 +66,16 @@ const HeaderBox = ({ style, productData, onPressBack, onlyLogo, smallLogo = true
           <TouchableOpacity
             onPress={onPressBack ? onPressBack : () => navigation.goBack()}
           >
-            <Ionicons
+            {
+              isShowBackBtn && 
+              <Ionicons
               name={
                 I18nManager.isRTL ? 'arrow-forward-sharp' : 'arrow-back-sharp'
               }
               color={colors.black}
               size={22}
             />
+            }
           </TouchableOpacity>
 
 

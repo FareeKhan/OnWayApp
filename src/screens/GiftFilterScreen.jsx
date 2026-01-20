@@ -4,6 +4,7 @@ import {
   FlatList,
   I18nManager,
   Image,
+  ImageBackground,
   Keyboard,
   KeyboardAvoidingView,
   StyleSheet,
@@ -45,7 +46,7 @@ import Theme2 from '../assets/svg/theme2.svg';
 import Pay1 from '../assets/svg/pay1.svg';
 import Pay2 from '../assets/svg/pay2.svg';
 import ContactPickerModal from '../components/ContactPickerModal';
-import { fetchRestaurentList, fetchTheme } from '../userServices/UserService';
+import { fetchRestaurentList, fetchSuggestedMsgs, fetchTheme } from '../userServices/UserService';
 import { showMessage } from 'react-native-flash-message';
 import { useDispatch, useSelector } from 'react-redux';
 import { addGiftProductToCart } from '../redux/GiftData';
@@ -62,8 +63,10 @@ const GiftFilterScreen = ({ route }) => {
   const dispatch = useDispatch()
   const navigation = useNavigation()
   const giftData = giftFilters(t);
-  const resID = useSelector((state) => state?.giftInfo?.giftProduct?.item?.restaurant_id)
+  // const resID = useSelector((state) => state?.giftInfo?.giftProduct?.item?.restaurant_id)
+    const resID = useSelector((state) => state?.giftInfo?.giftProduct?.item?.id)
   const giftCart = useSelector((state) => state?.giftInfo?.giftProduct)
+  const giftDataCart = useSelector((state) => state?.giftInfo?.giftProduct)
 
   const { thirdStepContinue } = route?.params || '';
 
@@ -82,10 +85,11 @@ const GiftFilterScreen = ({ route }) => {
   const [selectedShop, setSelectedShop] = useState('');
   const [manualNumber, setManualNumber] = useState('');
   const [cardName, setCardName] = useState('');
-  console.log('giftCartgiftCartgiftCart', giftCart)
+  const [suggestedMessages, setSuggestedMessages] = useState([]);
 
   useEffect(() => {
     restaurentData()
+        loadSuggestedMsgs()
   }, [])
 
   const restaurentData = async () => {
@@ -102,10 +106,23 @@ const GiftFilterScreen = ({ route }) => {
     }
   }
 
+
+    const loadSuggestedMsgs = async () => {
+    try {
+      const result = await fetchSuggestedMsgs(resID)
+      if (result?.success) {
+        setSuggestedMessages(result?.data)
+      }
+    } catch (ee) {
+      console.log('ee', ee)
+    }
+  }
+
   const themeArray = async (id) => {
+    console.log('ssssfaree',id)
     try {
       const result = await fetchTheme(id)
-      console.log('showMeAllThemesdasdasd', result?.data)
+      console.log('showMeAllThemesdssasdasd', result?.data)
       if (result?.success) {
         setAllThemes(result?.data?.themes)
       }
@@ -175,6 +192,7 @@ const GiftFilterScreen = ({ route }) => {
     setSelectThemeCard(true)
     dispatch(addGiftProductToCart({ selectedTheme }))
   }
+  console.log('allThemesallThemesallThemesallThemes',allThemes)
 
   const SelectCard = () => {
     return (
@@ -353,124 +371,243 @@ const GiftFilterScreen = ({ route }) => {
       {lastStep == 3 && (
         <>
           {selectThemeCard ? (
-            <View>
-              <HeaderWithAll
-                title={t('cardPreview')}
-                style={{ marginTop: 30 }}
-              />
+            // <View>
+            //   <HeaderWithAll
+            //     title={t('cardPreview')}
+            //     style={{ marginTop: 30 }}
+            //   />
 
-              <View
-                style={{
-                  backgroundColor: colors.secondary,
-                  height: 170,
-                  borderRadius: 10,
-                  borderBottomLeftRadius: 0,
-                  padding: 30,
-                }}
-              >
-                <CustomText
-                  style={{ color: colors.primary, fontFamily: fonts.medium }}
-                >
-                  {t('yourGift')}
-                </CustomText>
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}
-                >
-                  <CustomText
+            //   <View
+            //     style={{
+            //       backgroundColor: colors.secondary,
+            //       height: 170,
+            //       borderRadius: 10,
+            //       borderBottomLeftRadius: 0,
+            //       padding: 30,
+            //     }}
+            //   >
+            //     <CustomText
+            //       style={{ color: colors.primary, fontFamily: fonts.medium }}
+            //     >
+            //       {t('yourGift')}
+            //     </CustomText>
+            //     <View
+            //       style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}
+            //     >
+            //       <CustomText
+            //         style={{
+            //           color: colors.primary,
+            //           fontFamily: fonts.bold,
+            //           fontSize: 15,
+            //         }}
+            //       >
+            //         1 item from
+            //       </CustomText>
+            //       <CustomText
+            //         style={{ color: colors.primary, fontFamily: fonts.medium }}
+            //       >
+            //         The Coffee Merchant
+            //       </CustomText>
+            //     </View>
+            //   </View>
+
+            //   {/* <HeaderWithAll
+            //     title={t('yourName')}
+            //     style={{ marginTop: 30, marginBottom: 5 }}
+            //   />
+            //   <CustomText style={{ marginBottom: 10 }}>
+            //     {t('shownCard')}
+            //   </CustomText> */}
+
+            //   <CustomInput
+            //     placeholder={t('ReceiptName')}
+            //     filter={false}
+            //     style={{
+            //       width: '100%',
+            //       backgroundColor: '#fff',
+            //       marginTop: 15,
+            //       borderWidth: 1,
+            //       borderColor: 'black',
+            //     }}
+            //     name={cardName}
+            //     onChangeText={setCardName}
+            //   />
+
+
+            //   <CustomInput
+            //     placeholder={'haveAGoodDay'}
+            //     filter={false}
+            //     multiline
+            //     inputExtraStyle={{
+            //       height: 140,
+            //       verticalAlign: 'top',
+            //       paddingTop: 15,
+            //     }}
+            //     value={selectedMsg}
+            //     onChangeText={setSelectedMsg}
+            //     style={{
+            //       width: '100%',
+            //       backgroundColor: '#fff',
+            //       borderWidth: 1,
+            //       borderColor: 'black',
+            //     }}
+            //   />
+
+            //   {/* <CustomText style={{ fontFamily: fonts.semiBold }}>OR</CustomText>
+
+            //   <TouchableOpacity
+            //     onPress={() => setModalVisible(true)}
+            //     style={{
+            //       backgroundColor: colors.secondary,
+            //       paddingVertical: 10,
+            //       paddingHorizontal: 20,
+            //       borderRadius: 10,
+            //       marginTop: 15,
+            //       marginBottom: 30,
+            //     }}
+            //   >
+            //     <CustomText style={{ fontFamily: fonts.medium }}>
+            //       {t('suggestedMessages')}
+            //     </CustomText>
+            //     <Subtitle style={{ fontSize: 14 }}>
+            //       {t('selectAmessage')}
+            //     </Subtitle>
+            //   </TouchableOpacity> */}
+
+            //   <CustomButton
+            //     title={t('continuePayment')}
+            //     onPress={() => {
+            //       if (cardName == '') {
+            //         showMessage({
+            //           type: "warning",
+            //           message: t('enterReceiptName')
+            //         })
+            //         return
+            //       }
+            //       dispatch(addGiftProductToCart({ cardName, selectedMsg }))
+            //       setSelectedFilter([1, 2, 3, 4])
+            //     }}
+            //   />
+            // </View>
+
+
+             <View>
+                  <HeaderWithAll title={t('cardPreview')} style={{ marginTop: 30 }} />
+
+                  <ImageBackground
+                    source={{ uri: `${ImageBaseUrl}${selectedTheme?.image}` }}
                     style={{
-                      color: colors.primary,
-                      fontFamily: fonts.bold,
-                      fontSize: 15,
+                      backgroundColor: colors.secondary,
+                      height: 220,
+                      width: Dimensions.get('screen').width - 40,
+                      overflow: "hidden",
+                      borderRadius: 10,
+                      borderBottomLeftRadius: 0,
+                      padding: 30,
                     }}
                   >
-                    1 item from
-                  </CustomText>
-                  <CustomText
-                    style={{ color: colors.primary, fontFamily: fonts.medium }}
+                    <CustomText
+                      style={{ color: colors.primary, fontFamily: fonts.medium }}
+                    >
+                      {t('yourGift')}
+                    </CustomText>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                      <CustomText
+                        style={{
+                          color: colors.primary,
+                          fontFamily: fonts.bold,
+                          fontSize: 15,
+                        }}
+                      >
+                        {giftDataCart?.counter} {giftDataCart?.counter > 1 ? 'items' : 'item'} from
+                      </CustomText>
+                      <CustomText
+                        style={{ color: colors.primary, fontFamily: fonts.medium }}
+                      >
+                        {giftDataCart?.item?.name}
+                      </CustomText>
+                    </View>
+                  </ImageBackground>
+
+                  <HeaderWithAll
+                    title={t('recptName')}
+                    style={{ marginTop: 30, marginBottom: 5 }}
+                  />
+                  <CustomText style={{ marginBottom: 10 }}>{t('shownCard')}</CustomText>
+
+                  <CustomInput
+                    placeholder={t('recptName')}
+                    rs={true}
+                    style={{
+                      backgroundColor: colors.secondary,
+                    }}
+                    name={cardName}
+                    onChangeText={setCardName}
+                  />
+                  {/* <HeaderWithAll
+                    title={t('recptAddress')}
+                    style={{ marginBottom: 5 }}
+                  />
+                  <CustomInput
+                    placeholder={t('recptAddress')}
+                    rs={true}
+                    style={{
+                      backgroundColor: colors.secondary,
+                    }}
+                    name={address}
+                    onChangeText={setAddress}
+                  /> */}
+
+                  <HeaderWithAll title={t('addAMessage')} style={{ marginBottom: 6 }} />
+                  <CustomInput
+                    placeholder={'haveAGoodDay'}
+                    rs={true}
+                    multiline
+                    style={{
+                      backgroundColor: colors.secondary,
+                      borderWidth: 0,
+                      borderBottomWidth: 0,
+                    }}
+                    inputExtraStyle={{ height: 140, verticalAlign: "top", paddingTop: 15 }}
+                    value={selectedMsg}
+                    onChangeText={setSelectedMsg}
+                  />
+
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(true)}
+                    style={{
+                      backgroundColor: colors.secondary,
+                      paddingVertical: 10,
+                      paddingHorizontal: 20,
+                      borderRadius: 10,
+                      marginTop: 15,
+                      marginBottom: 30,
+                    }}
                   >
-                    The Coffee Merchant
-                  </CustomText>
+                    <CustomText style={{ fontFamily: fonts.medium }} >
+                      {t('suggestedMessages')}
+                    </CustomText>
+                    <Subtitle style={{ fontSize: 14 }}>{t('selectAmessage')}</Subtitle>
+                  </TouchableOpacity>
+
+                  <CustomButton title={t('continuePayment')}
+                    // onPress={() => setSelectedFilter([1, 2, 3, 4])}
+
+                    onPress={() => {
+                      if (cardName == '') {
+                        showMessage({
+                          type: "warning",
+                          message: t('enterReceiptName')
+                        })
+                        return
+                      }
+                      dispatch(addGiftProductToCart({ cardName, selectedMsg }))
+                      setSelectedFilter([1, 2, 3, 4])
+                    }}
+
+                  />
+
                 </View>
-              </View>
-
-              {/* <HeaderWithAll
-                title={t('yourName')}
-                style={{ marginTop: 30, marginBottom: 5 }}
-              />
-              <CustomText style={{ marginBottom: 10 }}>
-                {t('shownCard')}
-              </CustomText> */}
-
-              <CustomInput
-                placeholder={t('ReceiptName')}
-                filter={false}
-                style={{
-                  width: '100%',
-                  backgroundColor: '#fff',
-                  marginTop: 15,
-                  borderWidth: 1,
-                  borderColor: 'black',
-                }}
-                name={cardName}
-                onChangeText={setCardName}
-              />
-
-
-              <CustomInput
-                placeholder={'haveAGoodDay'}
-                filter={false}
-                multiline
-                inputExtraStyle={{
-                  height: 140,
-                  verticalAlign: 'top',
-                  paddingTop: 15,
-                }}
-                value={selectedMsg}
-                onChangeText={setSelectedMsg}
-                style={{
-                  width: '100%',
-                  backgroundColor: '#fff',
-                  borderWidth: 1,
-                  borderColor: 'black',
-                }}
-              />
-
-              {/* <CustomText style={{ fontFamily: fonts.semiBold }}>OR</CustomText>
-
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                style={{
-                  backgroundColor: colors.secondary,
-                  paddingVertical: 10,
-                  paddingHorizontal: 20,
-                  borderRadius: 10,
-                  marginTop: 15,
-                  marginBottom: 30,
-                }}
-              >
-                <CustomText style={{ fontFamily: fonts.medium }}>
-                  {t('suggestedMessages')}
-                </CustomText>
-                <Subtitle style={{ fontSize: 14 }}>
-                  {t('selectAmessage')}
-                </Subtitle>
-              </TouchableOpacity> */}
-
-              <CustomButton
-                title={t('continuePayment')}
-                onPress={() => {
-                  if (cardName == '') {
-                    showMessage({
-                      type: "warning",
-                      message: t('enterReceiptName')
-                    })
-                    return
-                  }
-                  dispatch(addGiftProductToCart({ cardName, selectedMsg }))
-                  setSelectedFilter([1, 2, 3, 4])
-                }}
-              />
-            </View>
           ) : (
             <SelectCard />
           )}
@@ -496,6 +633,8 @@ const GiftFilterScreen = ({ route }) => {
         setModalVisible={setModalVisible}
         modalVisible={modalVisible}
         setSelectedMsg={setSelectedMsg}
+        data={suggestedMessages?.messages}
+
       />
 
 

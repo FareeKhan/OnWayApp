@@ -62,7 +62,7 @@ const FavoriteScreen = () => {
 
   return (
     <ScreenView>
-      <HeaderBox logo={true} notification={false} search={false} />
+      <HeaderBox logo={true} notification={false} search={false}  isShowBackBtn={false} />
 
       <IconLabel
         label={'favorite'}

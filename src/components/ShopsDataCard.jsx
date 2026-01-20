@@ -18,7 +18,6 @@ const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
 
   const [useFallback, setUseFallback] = useState(false);
 
-
   const renderItem = ({ item, index }) => {
     const remoteImage = item?.logo ? `${mainUrl}${item?.logo}` : `${mainUrl}${item?.image}`
 
@@ -29,20 +28,21 @@ const ShopsDataCard = ({ data, scrollEnabled, onPress }) => {
         })}
         style={styles.cardBox}
       >
-        <View style={{ backgroundColor: 'red', borderRadius: 50, overflow: "hidden", borderWidth: 1, borderColor: colors.gray6 }}>
+        <View style={{ backgroundColor: '#fff', borderRadius: 50, overflow: "hidden", borderWidth: 1, borderColor: colors.gray6 }}>
           <FastImage
-            style={{ width: 70, height: 70 }}
+            style={{ width: 70, height: 70, }}
             source={{
               uri: remoteImage,
               priority: FastImage.priority.normal,
             }}
+            resizeMode='contain'
             onError={() => setUseFallback(true)}
           />
         </View>
 
         <View style={{ gap: 2, width: '75%' }}>
           <CustomText style={styles.title}>{item?.name}</CustomText>
-          <CustomText style={styles.subTitle}>
+          <CustomText numberOfLines={4} style={styles.subTitle}>
             {item?.description}
           </CustomText>
 

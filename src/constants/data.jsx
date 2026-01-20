@@ -1,7 +1,12 @@
-export const mainUrl = 'https://backend.onway.ae/';
+// export const mainUrl = 'https://backend.onway.ae/';
+// // export const mainUrl = 'https://6002275ab989.ngrok-free.app/';
+// export const ImageBaseUrl = 'https://backend.onway.ae';
 
-// export const mainUrl = 'https://6002275ab989.ngrok-free.app/';
-export const ImageBaseUrl = 'https://backend.onway.ae';
+export const mainUrl = 'https://backend.koubak.info/';
+
+// export const ImageBaseUrl = 'https://backend.onway.ae';
+export const ImageBaseUrl = 'https://backend.koubak.info';
+
 export const baseUrl = `${mainUrl}api/`;
 export const imageUrl = `${mainUrl}uploads/`;
 export const SP_KEY =
